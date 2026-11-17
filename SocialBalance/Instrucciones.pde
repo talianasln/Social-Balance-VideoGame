@@ -60,16 +60,16 @@ class Instrucciones {
 
 
     // Controles actualizados sin modificar la ilustración original.
-    rectMode(CORNER);
-    fill(22, 19, 24, 245);
-    stroke(206, 165, 150);
-    rect(180, 620, 920, 75, 10);
-    fill(255, 225, 210);
-    textAlign(CENTER, CENTER);
-    textSize(17);
-    text("WASD / Flechas: moverte en cuatro direcciones   |   E: interactuar", 640, 642);
-    text("Baja junto a la cama y camina hacia la derecha para llegar al celular.", 640, 672);
-    popStyle();
+    //rectMode(CORNER);
+    //fill(22, 19, 24, 245);
+//    stroke(206, 165, 150);
+  //  rect(180, 620, 920, 75, 10);
+    //fill(255, 225, 210);
+  //  textAlign(CENTER, CENTER);
+    //textSize(17);
+    //text("WASD / Flechas: moverte en cuatro direcciones   |   E: interactuar", 640, 642);
+   // text("Baja junto a la cama y camina hacia la derecha para llegar al celular.", 640, 672);
+    //popStyle();
   }
 
 

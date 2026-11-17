@@ -7,8 +7,8 @@ class Jugador {
   float velocidad = 4;
 
   // Tamaño del personaje en pantalla
-  float anchoPersonaje = 380;
-  float altoPersonaje = 380;
+  float anchoPersonaje = 330;
+  float altoPersonaje = 330;
 
   // Límites de movimiento horizontal
   float limiteIzquierdo = 220;

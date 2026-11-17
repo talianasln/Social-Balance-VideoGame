@@ -46,6 +46,9 @@ Instrucciones instrucciones;
 
 GestorMinijuegos gestorMinijuegos;
 
+// Imágenes del minijuego Memoria
+PImage reversoMemoria;
+PImage[] imagenesMemoria = new PImage[6];
 
 // ================= SETUP =================
 
@@ -93,6 +96,16 @@ void setup() {
 
   fondoInterfazEscritorio = loadImage("InterfazEscritorio.png");
   imagenTarjetaTarea = loadImage("TarjetaTarea.png");
+
+  // Imágenes de las cartas de Memoria
+  reversoMemoria = loadImage("ReversoTM.png");
+
+  imagenesMemoria[0] = loadImage("BienestarTM.png");
+  imagenesMemoria[1] = loadImage("EquilibrioTM.png");
+  imagenesMemoria[2] = loadImage("PrivacidadTM.png");
+  imagenesMemoria[3] = loadImage("RespetoTM.png");
+  imagenesMemoria[4] = loadImage("TiempoTM.png");
+  imagenesMemoria[5] = loadImage("CelularTM.png");
 }
 
 
@@ -123,8 +136,7 @@ void dibujarJuego() {
         0,
         ANCHO_JUEGO,
         ALTO_JUEGO
-      );
-
+        );
     } else if (personajeSeleccionado == 2) {
 
       image(
@@ -133,7 +145,7 @@ void dibujarJuego() {
         0,
         ANCHO_JUEGO,
         ALTO_JUEGO
-      );
+        );
     }
 
 
@@ -174,12 +186,10 @@ void dibujarJuego() {
   }
 
   // mostrarCoordenadas();
-  
+
   if (modoDebug) {
-  mostrarCuadricula();
-}
-
-
+    mostrarCuadricula();
+  }
 }
 
 
@@ -226,17 +236,17 @@ void mostrarCuadricula() {
     "X: " + mouseJuegoX() + "  Y: " + mouseJuegoY(),
     20,
     ALTO_JUEGO - 28
-  );
+    );
 
   // Cruz de posición del mouse
   stroke(255, 200, 100);
   strokeWeight(1);
 
   line(mouseJuegoX() - 10, mouseJuegoY(),
-       mouseJuegoX() + 10, mouseJuegoY());
+    mouseJuegoX() + 10, mouseJuegoY());
 
   line(mouseJuegoX(), mouseJuegoY() - 10,
-       mouseJuegoX(), mouseJuegoY() + 10);
+    mouseJuegoX(), mouseJuegoY() + 10);
 
   popStyle();
 }
