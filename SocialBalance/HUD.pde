@@ -1,8 +1,9 @@
 class HUD {
 
-  int energia = 100;
-  int estres = 0;
-  int concentracion = 100;
+  int energia = 75;
+  int estres = 20;
+  int concentracion = 80;
+  int descansoAcumulado = 0;
 
   // Hora inicial: 8:00 AM
   int hora = 8;
@@ -181,23 +182,35 @@ class HUD {
   }
 
 
-  void avanzarTiempo(int minutosExtra) {
-
-    minutos += minutosExtra;
-
-
-    while (minutos >= 60) {
-
-      minutos -= 60;
-      hora++;
-    }
-
-
-    if (hora >= 24) {
-      hora -= 24;
-    }
+  int minutosDelDia() { return hora * 60 + minutos; }
+  int tiempoDisponible() { return max(0, FIN_DIA - minutosDelDia()); }
+  boolean puedeAvanzarTiempo(int cantidad) {
+    return cantidad >= 0 && cantidad <= tiempoDisponible();
+  }
+  boolean avanzarTiempo(int cantidad) {
+    if (!puedeAvanzarTiempo(cantidad)) return false;
+    int total = minutosDelDia() + cantidad;
+    hora = total / 60;
+    minutos = total % 60;
+    return true;
   }
 
+  boolean descansar(int duracion) {
+    if ((duracion != 15 && duracion != 30) || descansoAcumulado + duracion > MAX_DESCANSO) return false;
+    if (!avanzarTiempo(duracion)) return false;
+    descansoAcumulado += duracion;
+    modificarEnergia(duracion == 15 ? 10 : 20);
+    return true;
+  }
+
+  boolean usarCelular(int duracion) {
+    if (duracion != 15 && duracion != 30) return false;
+    if (!avanzarTiempo(duracion)) return false;
+    modificarEstres(duracion == 15 ? -12 : -20);
+    modificarEnergia(duracion == 15 ? -3 : -6);
+    modificarConcentracion(duracion == 15 ? -3 : -6);
+    return true;
+  }
 
   // ================= ESTADÍSTICAS =================
 
@@ -248,10 +261,10 @@ class HUD {
 
 
     boolean encima =
-      mouseX >= x &&
-      mouseX <= x + tamano &&
-      mouseY >= y &&
-      mouseY <= y + tamano;
+      mouseJuegoX() >= x &&
+      mouseJuegoX() <= x + tamano &&
+      mouseJuegoY() >= y &&
+      mouseJuegoY() <= y + tamano;
 
 
     if (encima) {
@@ -290,9 +303,9 @@ class HUD {
 
   boolean clicAyuda() {
 
-    return mouseX >= 1175 &&
-           mouseX <= 1235 &&
-           mouseY >= 20 &&
-           mouseY <= 80;
+    return mouseJuegoX() >= 1175 &&
+           mouseJuegoX() <= 1235 &&
+           mouseJuegoY() >= 20 &&
+           mouseJuegoY() <= 80;
   }
 }

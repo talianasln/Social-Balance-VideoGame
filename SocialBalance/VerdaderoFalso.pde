@@ -1,588 +1,123 @@
+// SOCIAL BALANCE - MOTOR PURO DEL MINIJUEGO VERDADERO/FALSO
+// Adaptado para jugar sin derrota por tiempo y leer las explicaciones con calma.
+// No depende de la interfaz, el raton, imagenes ni Processing.
 class VerdaderoFalso {
+  static final int INTRO = 0;
+  static final int JUGANDO = 1;
+  static final int EXPLICACION = 2;
+  static final int VICTORIA = 3;
+  static final int DERROTA_ERRORES = 4;
+  static final int DERROTA_TIEMPO = 5;
 
-  String[] preguntas = {
-    "Pasar muchas horas en el celular puede quitarte tiempo\npara estudiar y descansar.",
+  static final long LIMITE_MS = 90000L;
+  static final long EXPLICACION_MS = 2600L;
+  static final int META_ACIERTOS = 5;
+  static final int MAX_ERRORES = 3;
 
-    "Puedes silenciar las notificaciones para concentrarte\nmejor en una tarea.",
-
-    "Los videojuegos y las redes sociales pueden formar parte\ndel entretenimiento si se usan con equilibrio.",
-
-    "Debes responder todos los mensajes inmediatamente,\naunque estés estudiando.",
-
-    "Usar el celular hasta muy tarde nunca afecta el descanso.",
-
-    "Descansar es una pérdida de tiempo cuando tienes muchas\ntareas pendientes."
+  final String[] afirmaciones = {
+    "Un perfil privado impide que sus seguidores compartan capturas de tus publicaciones.",
+    "Un sitio con candado HTTPS cifra la conexión, pero eso no garantiza que sea confiable.",
+    "Un mensaje que viene de la cuenta auténtica de un amigo podría ser una estafa.",
+    "Si desactivas la ubicación, nadie puede deducir dónde estás por una foto que publiques.",
+    "Incluso una aplicación descargada de una tienda oficial puede solicitar permisos innecesarios.",
+    "Borrar una historia pocos minutos despues asegura que nadie conserve una copia.",
+    "Activar la verificación en dos pasos agrega protección incluso con una clave larga."
+  };
+  final boolean[] respuestas = { false, true, true, false, true, false, true };
+  final String[] explicaciones = {
+    "Tus seguidores pueden capturar o reenviar el contenido que ven.",
+    "El candado indica cifrado de conexión, no que el sitio sea legítimo.",
+    "La cuenta de tu amigo podría haber sido robada o suplantada.",
+    "El fondo y otros detalles pueden revelar dónde estás.",
+    "Conviene revisar los permisos de cualquier aplicación.",
+    "Alguien pudo guardar una captura antes de que la borraras.",
+    "Un segundo factor dificulta el acceso con una clave robada."
   };
 
-
-  boolean[] respuestas = {
-    true,
-    true,
-    true,
-    false,
-    false,
-    false
-  };
-
-
-  String[] explicaciones = {
-    "El tiempo dedicado a las redes puede reducir el disponible\npara otras actividades.",
-
-    "Reducir las interrupciones puede facilitar la concentración.",
-
-    "La idea no es eliminarlos, sino equilibrarlos con otras\nresponsabilidades.",
-
-    "Puedes responder después de terminar una actividad importante.",
-
-    "El uso nocturno puede dificultar dormir bien y retrasar\nla hora de acostarse.",
-
-    "El descanso también es necesario para el bienestar y\nel rendimiento."
-  };
-
-
-  int[] orden = {0, 1, 2, 3, 4, 5};
-
-  int preguntaActual = 0;
+  final int[] orden = new int[7];
+  final java.util.Random azar;
+  int estado = INTRO;
+  int posicion = 0;
   int aciertos = 0;
+  int errores = 0;
+  int ronda = 0;
+  boolean ultimaCorrecta = false;
+  long inicioReloj = -1;
+  long inicioExplicacion = -1;
 
-  boolean activa = false;
-  boolean respondida = false;
-  boolean respuestaCorrecta = false;
-  boolean terminado = false;
-  boolean aprobado = false;
-
-
-  // ================= INICIAR =================
-
-  void iniciar() {
-
-    activa = true;
-
-    preguntaActual = 0;
-    aciertos = 0;
-
-    respondida = false;
-    terminado = false;
-    aprobado = false;
-
-    mezclarPreguntas();
+  VerdaderoFalso() { this(new java.util.Random()); }
+  VerdaderoFalso(java.util.Random azar) {
+    if (azar == null) throw new IllegalArgumentException("Se necesita un generador aleatorio.");
+    this.azar = azar;
+    reiniciar(0L);
   }
 
-
-  // ================= ALEATORIEDAD =================
-
-  void mezclarPreguntas() {
-
-    // Reiniciar orden
-    for (int i = 0; i < orden.length; i++) {
-      orden[i] = i;
-    }
-
-
-    // Mezclar
+  void reiniciar(long ahora) {
+    int[] anterior = java.util.Arrays.copyOf(orden, orden.length);
+    boolean habiaRonda = ronda > 0;
+    for (int i = 0; i < 7; i++) orden[i] = i;
     for (int i = orden.length - 1; i > 0; i--) {
-
-      int posicionAleatoria =
-        int(random(i + 1));
-
-      int temporal = orden[i];
-
-      orden[i] = orden[posicionAleatoria];
-
-      orden[posicionAleatoria] = temporal;
+      int j = azar.nextInt(i + 1);
+      int auxiliar = orden[i];
+      orden[i] = orden[j];
+      orden[j] = auxiliar;
     }
+    // Al reiniciar se conserva el banco, pero se garantiza un orden diferente.
+    if (habiaRonda && java.util.Arrays.equals(anterior, orden)) {
+      int temp = orden[0]; orden[0] = orden[1]; orden[1] = temp;
+    }
+    ronda++;
+    estado = INTRO;
+    posicion = aciertos = errores = 0;
+    inicioReloj = inicioExplicacion = -1;
+    ultimaCorrecta = false;
   }
 
+  boolean comenzar(long ahora) {
+    if (estado != INTRO) return false;
+    estado = JUGANDO;
+    inicioReloj = ahora;
+    return true;
+  }
 
-  // ================= MOSTRAR =================
+  void actualizar(long ahora) {
+    if (estado != JUGANDO && estado != EXPLICACION) return;
+  }
 
-  void mostrar() {
+  void siguiente() {
+    if (estado != EXPLICACION) return;
+    posicion++;
+    if (posicion < afirmaciones.length) estado = JUGANDO;
+  }
 
-    if (!activa) {
-      return;
-    }
-
-
-    pushStyle();
-
-
-    // Oscurecer fondo
-    fill(0, 170);
-    noStroke();
-
-    rect(0, 0, width, height);
-
-
-    // ================= PANEL =================
-
-    float panelX = 190;
-    float panelY = 90;
-
-    float panelW = 900;
-    float panelH = 540;
-
-
-    fill(25, 27, 35, 250);
-    stroke(255);
-    strokeWeight(2);
-
-    rect(
-      panelX,
-      panelY,
-      panelW,
-      panelH,
-      18
-    );
-
-
-    // ================= TÍTULO =================
-
-    fill(255);
-    textAlign(LEFT, CENTER);
-    textSize(30);
-
-    text(
-      "TAREA 1 - VERDADERO O FALSO",
-      panelX + 40,
-      panelY + 45
-    );
-
-
-    // ================= X =================
-
-    dibujarCerrar();
-
-
-    // ================= RESULTADO FINAL =================
-
-    if (terminado) {
-
-      mostrarResultadoFinal();
-
-      popStyle();
-
-      return;
-    }
-
-
-    // ================= PREGUNTA =================
-
-    int indice =
-      orden[preguntaActual];
-
-
-    fill(180);
-    textAlign(CENTER, CENTER);
-    textSize(17);
-
-    text(
-      "PREGUNTA " +
-      (preguntaActual + 1) +
-      " / 6",
-      width/2,
-      185
-    );
-
-
-    fill(255);
-    textSize(23);
-
-    text(
-      preguntas[indice],
-      width/2,
-      265
-    );
-
-
-    // ================= SIN RESPONDER =================
-
-    if (!respondida) {
-
-      botonRespuesta(
-        "VERDADERO",
-        330,
-        370,
-        true
-      );
-
-      botonRespuesta(
-        "FALSO",
-        680,
-        370,
-        false
-      );
-    }
-
-
-    // ================= RESPONDIDA =================
-
+  boolean responder(boolean elegidoVerdadero, long ahora) {
+    actualizar(ahora);
+    // Antidoble clic: solo se puede responder una vez por afirmacion.
+    if (estado != JUGANDO || posicion >= afirmaciones.length) return false;
+    ultimaCorrecta = (elegidoVerdadero == respuestas[orden[posicion]]);
+    if (ultimaCorrecta) aciertos++;
+    else errores++;
+    if (aciertos >= META_ACIERTOS) estado = VICTORIA;
+    else if (errores >= MAX_ERRORES) estado = DERROTA_ERRORES;
     else {
-
-      if (respuestaCorrecta) {
-
-        fill(255);
-        textSize(25);
-
-        text(
-          "¡CORRECTO!",
-          width/2,
-          370
-        );
-      }
-
-      else {
-
-        fill(255);
-        textSize(25);
-
-        text(
-          "INCORRECTO",
-          width/2,
-          370
-        );
-      }
-
-
-      // Explicación
-      fill(190);
-      textSize(17);
-
-      text(
-        explicaciones[indice],
-        width/2,
-        430
-      );
-
-
-      botonSiguiente();
+      estado = EXPLICACION;
+      inicioExplicacion = ahora;
     }
-
-
-    // ================= ACIERTOS =================
-
-    fill(170);
-    textAlign(LEFT, CENTER);
-    textSize(16);
-
-    text(
-      "Aciertos: " + aciertos,
-      panelX + 40,
-      panelY + panelH - 30
-    );
-
-
-    popStyle();
+    return true;
   }
 
-
-  // ================= BOTONES RESPUESTA =================
-
-  void botonRespuesta(
-    String texto,
-    float x,
-    float y,
-    boolean respuesta
-  ) {
-
-    float ancho = 270;
-    float alto = 65;
-
-
-    boolean encima =
-      mouseX >= x &&
-      mouseX <= x + ancho &&
-      mouseY >= y &&
-      mouseY <= y + alto;
-
-
-    if (encima) {
-      fill(255, 200);
-    }
-
-    else {
-      fill(230);
-    }
-
-
-    stroke(255);
-    strokeWeight(2);
-
-    rect(
-      x,
-      y,
-      ancho,
-      alto,
-      10
-    );
-
-
-    fill(20);
-    textAlign(CENTER, CENTER);
-    textSize(19);
-
-    text(
-      texto,
-      x + ancho/2,
-      y + alto/2
-    );
+  int segundosRestantes(long ahora) {
+    if (estado == INTRO) return 90;
+    if (estado == DERROTA_TIEMPO) return 0;
+    long restante = Math.max(0L, LIMITE_MS - (ahora - inicioReloj));
+    return (int)((restante + 999L) / 1000L);
   }
 
-
-  // ================= RESPONDER =================
-
-  void responder(boolean respuestaJugador) {
-
-    if (respondida || terminado) {
-      return;
-    }
-
-
-    int indice =
-      orden[preguntaActual];
-
-
-    respuestaCorrecta =
-      respuestaJugador == respuestas[indice];
-
-
-    if (respuestaCorrecta) {
-      aciertos++;
-    }
-
-
-    respondida = true;
+  boolean completado() { return estado == VICTORIA; }
+  boolean terminado() {
+    return estado == VICTORIA || estado == DERROTA_ERRORES || estado == DERROTA_TIEMPO;
   }
-
-
-  // ================= SIGUIENTE =================
-
-  void siguientePregunta() {
-
-    if (!respondida) {
-      return;
-    }
-
-
-    preguntaActual++;
-
-
-    if (preguntaActual >= 6) {
-
-      terminado = true;
-
-      aprobado = aciertos >= 5;
-
-      return;
-    }
-
-
-    respondida = false;
-  }
-
-
-  void botonSiguiente() {
-
-    float x = 490;
-    float y = 500;
-
-    float ancho = 300;
-    float alto = 55;
-
-
-    boolean encima =
-      mouseX >= x &&
-      mouseX <= x + ancho &&
-      mouseY >= y &&
-      mouseY <= y + alto;
-
-
-    if (encima) {
-      fill(255, 200);
-    }
-
-    else {
-      fill(230);
-    }
-
-
-    stroke(255);
-
-    rect(
-      x,
-      y,
-      ancho,
-      alto,
-      8
-    );
-
-
-    fill(20);
-    textAlign(CENTER, CENTER);
-    textSize(18);
-
-    text(
-      "SIGUIENTE",
-      x + ancho/2,
-      y + alto/2
-    );
-  }
-
-
-  // ================= RESULTADO =================
-
-  void mostrarResultadoFinal() {
-
-    fill(255);
-    textAlign(CENTER, CENTER);
-
-
-    if (aprobado) {
-
-      textSize(30);
-
-      text(
-        "¡TAREA COMPLETADA!",
-        width/2,
-        270
-      );
-
-
-      textSize(21);
-
-      text(
-        "Resultado: " +
-        aciertos +
-        " / 6",
-        width/2,
-        325
-      );
-
-
-      botonFinal(
-        "CONTINUAR"
-      );
-    }
-
-    else {
-
-      textSize(30);
-
-      text(
-        "INTÉNTALO DE NUEVO",
-        width/2,
-        270
-      );
-
-
-      textSize(21);
-
-      text(
-        "Resultado: " +
-        aciertos +
-        " / 6",
-        width/2,
-        325
-      );
-
-
-      fill(180);
-      textSize(16);
-
-      text(
-        "Necesitas al menos 5 respuestas correctas.",
-        width/2,
-        365
-      );
-
-
-      botonFinal(
-        "REINTENTAR"
-      );
-    }
-  }
-
-
-  void botonFinal(String texto) {
-
-    float x = 490;
-    float y = 430;
-
-    float ancho = 300;
-    float alto = 60;
-
-
-    boolean encima =
-      mouseX >= x &&
-      mouseX <= x + ancho &&
-      mouseY >= y &&
-      mouseY <= y + alto;
-
-
-    if (encima) {
-      fill(255, 200);
-    }
-
-    else {
-      fill(230);
-    }
-
-
-    stroke(255);
-
-    rect(
-      x,
-      y,
-      ancho,
-      alto,
-      8
-    );
-
-
-    fill(20);
-    textAlign(CENTER, CENTER);
-    textSize(18);
-
-    text(
-      texto,
-      x + ancho/2,
-      y + alto/2
-    );
-  }
-
-
-  // ================= CERRAR =================
-
-  void dibujarCerrar() {
-
-    fill(255, 30);
-    noStroke();
-
-    rect(
-      1020,
-      110,
-      40,
-      40,
-      8
-    );
-
-
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(23);
-
-    text(
-      "X",
-      1040,
-      128
-    );
-  }
-
-
-  boolean clicCerrar() {
-
-    return mouseX >= 1020 &&
-           mouseX <= 1060 &&
-           mouseY >= 110 &&
-           mouseY <= 150;
-  }
+  String afirmacionActual() { return afirmaciones[orden[posicion]]; }
+  String explicacionActual() { return explicaciones[orden[posicion]]; }
+  int preguntasContestadas() { return aciertos + errores; }
 }

@@ -2,6 +2,8 @@ class ObjetoInteractivo {
 
   float zonaMinX;
   float zonaMaxX;
+  float zonaMinY = 475;
+  float zonaMaxY = 580;
 
   boolean interfazAbierta = false;
 
@@ -14,8 +16,8 @@ class ObjetoInteractivo {
 
   boolean jugadorCerca(Jugador jugador) {
 
-    return jugador.x >= zonaMinX &&
-           jugador.x <= zonaMaxX;
+    return jugador.piesX() >= zonaMinX && jugador.piesX() <= zonaMaxX &&
+           jugador.piesY() >= zonaMinY && jugador.piesY() <= zonaMaxY;
   }
 
 

@@ -29,8 +29,8 @@ class Instrucciones {
     rect(
       0,
       0,
-      width,
-      height
+      ANCHO_JUEGO,
+      ALTO_JUEGO
     );
 
 
@@ -44,10 +44,10 @@ class Instrucciones {
 
 
     float x =
-      width/2 - ancho/2;
+      ANCHO_JUEGO/2 - ancho/2;
 
     float y =
-      height/2 - alto/2;
+      ALTO_JUEGO/2 - alto/2;
 
 
     image(
@@ -59,6 +59,16 @@ class Instrucciones {
     );
 
 
+    // Controles actualizados sin modificar la ilustración original.
+    rectMode(CORNER);
+    fill(22, 19, 24, 245);
+    stroke(206, 165, 150);
+    rect(180, 620, 920, 75, 10);
+    fill(255, 225, 210);
+    textAlign(CENTER, CENTER);
+    textSize(17);
+    text("WASD / Flechas: moverte en cuatro direcciones   |   E: interactuar", 640, 642);
+    text("Baja junto a la cama y camina hacia la derecha para llegar al celular.", 640, 672);
     popStyle();
   }
 
@@ -76,10 +86,10 @@ class Instrucciones {
   
   boolean clicCerrar() {
 
-  return mouseX >= 980 &&
-         mouseX <= 1025 &&
-         mouseY >= 65 &&
-         mouseY <= 110;
+  return mouseJuegoX() >= 980 &&
+         mouseJuegoX() <= 1025 &&
+         mouseJuegoY() >= 65 &&
+         mouseJuegoY() <= 110;
 }
 
 }

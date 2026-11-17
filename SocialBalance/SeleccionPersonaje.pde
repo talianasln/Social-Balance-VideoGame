@@ -1,11 +1,11 @@
 void mostrarSeleccionPersonaje() {
 
-  image(fondoInicio, 0, 0, width, height);
+  image(fondoInicio, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
 
   // Oscurecer fondo
   fill(0, 150);
   noStroke();
-  rect(0, 0, width, height);
+  rect(0, 0, ANCHO_JUEGO, ALTO_JUEGO);
 
 
   // ================= CUADROS =================
@@ -40,8 +40,8 @@ void mostrarSeleccionPersonaje() {
   // ================= HOMBRE =================
 
   boolean encimaHombre =
-    mouseX >= hombreX && mouseX <= hombreX + cuadroW &&
-    mouseY >= hombreY && mouseY <= hombreY + cuadroH;
+    mouseJuegoX() >= hombreX && mouseJuegoX() <= hombreX + cuadroW &&
+    mouseJuegoY() >= hombreY && mouseJuegoY() <= hombreY + cuadroH;
 
   if (personajeSeleccionado == 1) {
     fill(255, 40);
@@ -73,8 +73,8 @@ void mostrarSeleccionPersonaje() {
   // ================= MUJER =================
 
   boolean encimaMujer =
-    mouseX >= mujerX && mouseX <= mujerX + cuadroW &&
-    mouseY >= mujerY && mouseY <= mujerY + cuadroH;
+    mouseJuegoX() >= mujerX && mouseJuegoX() <= mujerX + cuadroW &&
+    mouseJuegoY() >= mujerY && mouseJuegoY() <= mujerY + cuadroH;
 
   if (personajeSeleccionado == 2) {
     fill(255, 40);
@@ -126,7 +126,7 @@ void dibujarTono(float x, float y, color tono, int numeroTono) {
   float diametro = 55;
 
   boolean encima =
-    dist(mouseX, mouseY, x, y) <= diametro/2;
+    dist(mouseJuegoX(), mouseJuegoY(), x, y) <= diametro/2;
 
 
   if (tonoSeleccionado == numeroTono) {
@@ -155,8 +155,8 @@ void botonComenzar(float x, float y) {
   float alto = 60;
 
   boolean encima =
-    mouseX >= x && mouseX <= x + ancho &&
-    mouseY >= y && mouseY <= y + alto;
+    mouseJuegoX() >= x && mouseJuegoX() <= x + ancho &&
+    mouseJuegoY() >= y && mouseJuegoY() <= y + alto;
 
   if (encima) {
     fill(255, 180);
