@@ -1,7 +1,7 @@
 // Coordina los motores de los compañeros con las reglas compartidas del día.
 // Las vistas no descuentan recursos: cada resultado se liquida una sola vez aquí.
 class GestorMinijuegos {
-  int activo = 0; // 1 contraseña, 2 memoria, 3 verdadero/falso, 4 conectar conceptos
+  int activo = 0; // 1 contraseña, 2 memoria, 3 verdadero/falso, 4 conectar conceptos, 5 ordenar pasos
   int resultado = 0; // 0 jugando, 1 éxito, 2 fallo ya penalizado
   boolean confirmarSalida = false;
   boolean mostrarPista = false;
@@ -15,6 +15,8 @@ class GestorMinijuegos {
   VistaVerdaderoFalso vistaVerdaderoFalso;
   ConectarConceptos conceptos;
   VistaConectarConceptos vistaConceptos;
+  OrdenarPasos ordenarPasos;
+  VistaOrdenarPasos vistaOrdenarPasos;
   int intentosContrasenaProcesados = 0;
   int varianteContrasena = int(random(3));
 
@@ -58,6 +60,10 @@ class GestorMinijuegos {
       conceptos=new ConectarConceptos();
       conceptos.iniciar(millis());
       vistaConceptos=new VistaConectarConceptos(conceptos);
+    } else if (activo==5) {
+      ordenarPasos=new OrdenarPasos(new java.util.Random());
+      ordenarPasos.iniciar((long)millis());
+      vistaOrdenarPasos=new VistaOrdenarPasos(ordenarPasos);
     }
   }
 
@@ -75,7 +81,8 @@ class GestorMinijuegos {
     boolean exito=(activo==1 && contrasena.estaCompletado()) ||
       (activo==2 && vistaMemoria.memoria.completada()) ||
       (activo==3 && verdaderoFalso.completado()) ||
-      (activo==4 && conceptos.estaTerminado() && conceptos.hayVictoria());
+      (activo==4 && conceptos.estaTerminado() && conceptos.hayVictoria()) ||
+      (activo==5 && ordenarPasos.hayVictoria());
     if (exito) {
       Tarea tarea=tareaActual();
       if (!tarea.completada && tarea.bloqueo().length()==0 && hud.avanzarTiempo(tarea.minutosNecesarios)) {
@@ -93,6 +100,7 @@ class GestorMinijuegos {
       registrarFallo();
     } else if (activo==3 && verdaderoFalso.terminado()) registrarFallo();
     else if (activo==4 && conceptos.estaTerminado()) registrarFallo();
+    else if (activo==5 && ordenarPasos.estaTerminado()) registrarFallo();
   }
 
   boolean registrarFallo() {
@@ -132,6 +140,7 @@ class GestorMinijuegos {
     if (!confirmarSalida) inicioModal=millis();
     confirmarSalida=true;
     if (activo==3) vistaVerdaderoFalso.arrastrando=false;
+    if (activo==5) vistaOrdenarPasos.cancelarArrastre();
   }
 
   void cancelarSalida() {
@@ -179,6 +188,7 @@ class GestorMinijuegos {
       else if (activo==2) vistaMemoria.mostrar();
       else if (activo==3) vistaVerdaderoFalso.mostrar();
       else if (activo==4) vistaConceptos.mostrar();
+      else if (activo==5) vistaOrdenarPasos.mostrar();
       sincronizar();
     }
     if (derrota.length()>0) {
@@ -238,13 +248,16 @@ class GestorMinijuegos {
     else if (activo==2) vistaMemoria.presionar(x, y, (long)millis());
     else if (activo==3) vistaVerdaderoFalso.presionar(x, y, (long)millis());
     else if (activo==4) vistaConceptos.presionar(x,y);
+    else if (activo==5) vistaOrdenarPasos.presionar(x,y);
     sincronizar();
-    boolean salir=activo==1 ? vistaContrasena.quiereSalir : activo==2 ? vistaMemoria.quiereSalir : activo==3 ? vistaVerdaderoFalso.quiereSalir : activo==4 && vistaConceptos.quiereSalir;
+    boolean salir=activo==1 ? vistaContrasena.quiereSalir : activo==2 ? vistaMemoria.quiereSalir : activo==3 ? vistaVerdaderoFalso.quiereSalir :
+      activo==4 ? vistaConceptos.quiereSalir : activo==5 && vistaOrdenarPasos.quiereSalir;
     if (salir) {
       if (activo==1) vistaContrasena.quiereSalir=false;
       else if (activo==2) vistaMemoria.quiereSalir=false;
       else if (activo==3) vistaVerdaderoFalso.quiereSalir=false;
       else if (activo==4) vistaConceptos.quiereSalir=false;
+      else if (activo==5) vistaOrdenarPasos.quiereSalir=false;
       solicitarSalida();
     }
   }

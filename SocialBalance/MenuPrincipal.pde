@@ -99,7 +99,10 @@ void mouseDragged() {
 }
 
 void mouseReleased() {
-  if (pantalla==2 && gestorMinijuegos.activo==3 && !gestorMinijuegos.modalAbierto()) {
+  if (pantalla!=2 || gestorMinijuegos.modalAbierto()) return;
+  if (gestorMinijuegos.activo==5) {
+    gestorMinijuegos.vistaOrdenarPasos.soltar(mouseJuegoX(),mouseJuegoY());
+  } else if (gestorMinijuegos.activo==3) {
     gestorMinijuegos.vistaVerdaderoFalso.soltar(mouseJuegoX(),mouseJuegoY(),(long)millis());
     gestorMinijuegos.sincronizar();
   }

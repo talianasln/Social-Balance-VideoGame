@@ -9,7 +9,7 @@ class Escritorio extends ObjetoInteractivo {
   // Coordenadas en la imagen original de 1672 x 941, incluyendo las etiquetas.
   float[][] carpetas = {{90,90,170,140},{90,245,170,160},{90,410,170,140},
                         {90,550,170,140},{90,695,170,140}};
-  int[] tareaPorCarpeta = {0,3,1,2,-1};
+  int[] tareaPorCarpeta = {0,3,1,2,4};
   String[] nombresCarpetas = {"MEMORIA","VERDADERO / FALSO","CREAR CONTRASEÑA",
                              "CONECTAR CONCEPTOS","ORDENAR PASOS"};
 
@@ -34,7 +34,8 @@ class Escritorio extends ObjetoInteractivo {
       new Tarea(2,"MEMORIA","Encuentra las seis parejas de cartas.\nPrimero tendrás unos segundos para memorizarlas.",90,25,18,12*60),
       new Tarea(1,"CREAR CONTRASEÑA","Resuelve un reto de palabras y números.\nUsa una contraseña inventada; hay una pista disponible.",120,30,22,15*60+30),
       new Tarea(4,"CONECTAR CONCEPTOS","Relaciona cinco conceptos con sus definiciones.\nPuedes deshacer conexiones antes de verificar.",60,18,12,17*60),
-      new Tarea(3,"VERDADERO / FALSO","Arrastra cada afirmación a Falso o Verdadero.\nGanas con cinco aciertos; tres errores terminan el intento.",75,20,14,18*60)
+      new Tarea(3,"VERDADERO / FALSO","Arrastra cada afirmación a Falso o Verdadero.\nGanas con cinco aciertos; tres errores terminan el intento.",75,20,14,18*60),
+      new Tarea(5,"ORDENAR PASOS","Arrastra las cinco tarjetas para ordenar los pasos.\nPulsa Verificar cuando termines.",90,25,18,20*60+30)
     };
   }
   boolean jugadorCerca(Jugador jugador) {
