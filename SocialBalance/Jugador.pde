@@ -7,12 +7,12 @@ class Jugador {
   float velocidad = 4;
 
   // Tamaño del personaje en pantalla
-  float anchoPersonaje = 330;
-  float altoPersonaje = 330;
+  float anchoPersonaje = 280;
+  float altoPersonaje = 280;
 
-  // Límites de movimiento horizontal
-  float limiteIzquierdo = 220;
-  float limiteDerecho = 990;
+  // Límites horizontales medidos en los pies, independientes del sprite.
+  float limiteIzquierdo = 180;
+  float limiteDerecho = 1255;
 
   boolean moviendoIzquierda = false;
   boolean moviendoDerecha = false;
@@ -23,7 +23,10 @@ class Jugador {
   // ================= SPRITES =================
 
   PImage hojaSprites;
-  PImage[][] sprites = new PImage[4][4];
+  int framesDescanso = 1;
+  int frameDescanso = 0;
+  int ultimoFrameDescanso = 0;
+  int velocidadDescanso = 250;
   PImage imagenQuieto;
 
   final int ABAJO = 0;
@@ -35,7 +38,6 @@ class Jugador {
   int frameActual = 0;
 
   int cantidadFrames = 4;
-  int tamanoFrame = 128;
 
   int ultimoCambioFrame = 0;
   int velocidadAnimacion = 150;
@@ -44,42 +46,38 @@ class Jugador {
   // ================= CONSTRUCTOR =================
 
   Jugador() {
-  cargarSprites();
-
-  imagenQuieto = loadImage("ChicoPijamaQuieto.png");
+    reiniciarPosicion();
+    // Los recursos se cargan al confirmar la selección, no los tres a la vez.
   }
 
-
-  // ================= CARGAR SPRITES =================
-
-  void cargarSprites() {
-
-    hojaSprites = loadImage("ChicoPijamaMovimientos.png");
-
-    if (hojaSprites == null) {
-      println("ERROR: No se encontró el spritesheet");
-      return;
-    }
-
-    for (int fila = 0; fila < 4; fila++) {
-
-      for (int columna = 0; columna < 4; columna++) {
-
-        int frameX = columna * tamanoFrame;
-        int frameY = fila * tamanoFrame;
-
-        sprites[fila][columna] = hojaSprites.get(
-          frameX,
-          frameY,
-          tamanoFrame,
-          tamanoFrame
-        );
-      }
-    }
-
-    println("Sprites del personaje cargados correctamente");
+  void reiniciarPosicion() {
+    // Conservar la posición inicial de los pies al cambiar el tamaño del dibujo.
+    x = 665 - anchoPersonaje / 2;
+    y = 517 - altoPersonaje * 0.96;
+    detenerMovimiento();
   }
 
+  void cargarPersonaje(int indice) {
+    detenerMovimiento(); direccion = ABAJO;
+    hojaSprites = null; imagenQuieto = null;
+    PersonajeConfig config = personajes[indice-1];
+    int ladoHoja=resolucionSprite(max(anchoPersonaje,altoPersonaje))*4;
+    imagenQuieto = cargarImagenPersonaje(config.descanso,ladoHoja,4,1);
+    framesDescanso = imagenQuieto!=null ? 4 : 1;
+    hojaSprites = cargarImagenPersonaje(config.movimientos,ladoHoja,true);
+    // Mientras falta una animación, conservar la identidad del personaje.
+    if (imagenQuieto==null && hojaSprites==null) imagenQuieto=config.preview;
+    frameDescanso=0;
+    ultimoFrameDescanso=millis();
+    ultimoCambioFrame=millis();
+  }
+
+  int filaSprite() {
+    if (direccion==ARRIBA) return 0;
+    if (direccion==DERECHA) return 1;
+    if (direccion==ABAJO) return 2;
+    return 3;
+  }
 
   // ================= ACTUALIZAR =================
 
@@ -95,6 +93,13 @@ class Jugador {
     if (posicionPermitida(x + dx * velocidad, y)) x += dx * velocidad;
     if (posicionPermitida(x, y + dy * velocidad)) y += dy * velocidad;
     caminando = x != anteriorX || y != anteriorY;
+
+    // Descanso animado; también sirve provisionalmente si falta caminar.
+    if ((!caminando || hojaSprites==null) && framesDescanso>1 &&
+        millis()-ultimoFrameDescanso>=velocidadDescanso) {
+      frameDescanso=(frameDescanso+1)%framesDescanso;
+      ultimoFrameDescanso=millis();
+    }
 
     // ================= ANIMACIÓN =================
 
@@ -122,42 +127,26 @@ class Jugador {
   // ================= MOSTRAR =================
 
 void mostrar() {
-
-  // ================= PERSONAJE QUIETO =================
-
-  if (!caminando) {
-
-    if (imagenQuieto != null) {
-      image(
-        imagenQuieto,
-        x,
-        y,
-        anchoPersonaje,
-        altoPersonaje
-      );
-    }
-
+  if ((!caminando || hojaSprites==null) && imagenQuieto!=null) {
+    if (framesDescanso>1) {
+      int celda=imagenQuieto.width/framesDescanso;
+      int sx=frameDescanso*celda;
+      dibujarSpriteNitido(imagenQuieto,x,y,anchoPersonaje,altoPersonaje,sx,0,sx+celda,imagenQuieto.height);
+    } else dibujarImagenAjustada(imagenQuieto,x,y,anchoPersonaje,altoPersonaje);
     return;
   }
-
-
-  // ================= PERSONAJE CAMINANDO =================
-
-  PImage frame = sprites[direccion][frameActual];
-
-  if (frame == null) {
-    return;
+  if (hojaSprites!=null) {
+    int tamano=hojaSprites.width/4;
+    int sx=(caminando ? frameActual : 0)*tamano;
+    int sy=filaSprite()*tamano;
+    // Dibujar una celda evita duplicar en memoria las 16 imágenes.
+    dibujarSpriteNitido(hojaSprites,x,y,anchoPersonaje,altoPersonaje,sx,sy,sx+tamano,sy+tamano);
+  } else {
+    pushStyle(); fill(220,190,200); noStroke();
+    ellipse(piesX(),piesY()-90,65,140);
+    popStyle();
   }
-
-  image(
-    frame,
-    x,
-    y,
-    anchoPersonaje,
-    altoPersonaje
-  );
 }
-
 
   float piesX() { return x + anchoPersonaje / 2; }
   float piesY() { return y + altoPersonaje * 0.96; }
@@ -165,10 +154,13 @@ void mostrar() {
   boolean posicionPermitida(float nuevaX, float nuevaY) {
     float px = nuevaX + anchoPersonaje / 2;
     float py = nuevaY + altoPersonaje * 0.96;
-    if (nuevaX < limiteIzquierdo || nuevaX > limiteDerecho || py < 475 || py > 690) return false;
+    if (px < limiteIzquierdo || px > limiteDerecho || py < 475 || py > 690) return false;
     // Huella de los pies, no el margen transparente del sprite.
-    return !chocaMueble(px, py, 805, 390, 1165, 570) &&
-           !chocaMueble(px, py, 1165, 460, 1280, 610);
+    float bordeCama = personajeSeleccionado==2 ? 750 : 800;
+    return !chocaMueble(px, py, bordeCama, 390, 1170, 585) &&
+           !chocaMueble(px, py, 1170, 460, 1280, 655) &&
+           !chocaMueble(px, py, 150, 380, bordeDerechoEscritorio(), 550) &&
+           !chocaMueble(px, py, 0, 0, 155, 650);
   }
 
   boolean chocaMueble(float px, float py, float izquierda, float arriba, float derecha, float abajo) {

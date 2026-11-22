@@ -33,28 +33,22 @@ class VistaVerdaderoFalso {
     juego.actualizar(ahora);
     pushStyle();
     rectMode(CORNER);
-    noStroke();
-    fill(13,13,22,integrado ? 240 : 255);
-    rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
-    fill(38,34,46);
-    rect(62,43,1156,633,18);
-    fill(59,47,61);
-    rect(62,43,1156,67,16);
+    dibujarFondoMinijuego();
     fill(255,223,209);
     textAlign(LEFT,CENTER);
     textSize(26);
     text("SOCIAL BALANCE  /  VERDADERO O FALSO",98,76);
     if (integrado) {
-      boton(1129,55,58,43,"X");
+      dibujarCierreVentana();
     }
 
     // Introduccion corta que da sentido educativo al reto.
     if (juego.estado == VerdaderoFalso.INTRO) {
-      fill(246,216,198);
+      fill(65,39,45);
       textAlign(CENTER,CENTER);
       textSize(35);
       text("Desafío de ciudadanía digital",ANCHO_JUEGO/2,183);
-      fill(224,210,211);
+      fill(75,57,60);
       textSize(21);
       text("Tu universidad te invitó a una evaluacion breve sobre redes sociales.",ANCHO_JUEGO/2,243);
       text("Decide si cada una de las siete afirmaciones es verdadera o falsa.",ANCHO_JUEGO/2,279);
@@ -74,25 +68,25 @@ class VistaVerdaderoFalso {
 
     int seg = juego.inicioReloj < 0 ? 0 : (int)((ahora-juego.inicioReloj)/1000);
     String tiempo = nf(seg / 60,2) + ":" + nf(seg % 60,2);
-    fill(244,218,202);
+    fill(65,39,45);
     textAlign(LEFT,CENTER);
     textSize(18);
     text("ACIERTOS: " + juego.aciertos + " / 5",101,143);
     text("ERRORES: " + juego.errores + " / 3",339,143);
     text("RESPONDIDAS: " + juego.preguntasContestadas() + " / 7",554,143);
-    fill(244,218,202);
+    fill(65,39,45);
     textAlign(RIGHT,CENTER);
     textSize(31);
     text(tiempo,1159,143);
     textSize(12); text("TIEMPO REAL · SIN LÍMITE",1159,173);
 
     if (juego.terminado()) {
-      fill(juego.completado() ? color(163,232,180) : color(251,167,168));
+      fill(juego.completado() ? color(35,105,65) : color(155,45,55));
       textAlign(CENTER,CENTER);
       textSize(39);
       String titular = juego.completado() ? "¡RETO SUPERADO!" : "RETO NO SUPERADO";
       text(titular,ANCHO_JUEGO/2,269);
-      fill(238,219,214);
+      fill(75,57,60);
       textSize(22);
       if (juego.estado == VerdaderoFalso.VICTORIA) {
         text("Conseguiste cinco respuestas correctas.",ANCHO_JUEGO/2,334);
@@ -112,7 +106,7 @@ class VistaVerdaderoFalso {
       return;
     }
 
-    fill(207,190,195);
+    fill(75,57,60);
     textAlign(CENTER,CENTER);
     textSize(17);
     text("AFIRMACIÓN " + (juego.posicion+1) + " DE 7",ANCHO_JUEGO/2,188);
@@ -164,7 +158,7 @@ class VistaVerdaderoFalso {
       text(juego.explicacionActual(),640,576);
       boton(520,604,240,35,"SIGUIENTE");
     } else {
-      fill(193,179,185);
+      fill(75,57,60);
       textAlign(CENTER,CENTER);
       textSize(16);
       text("Mantén presionada la tarjeta y arrastrala hacia uno de los extremos.",640,587);
@@ -175,7 +169,7 @@ class VistaVerdaderoFalso {
 
   void presionar(float x,float y,long ahora) {
     juego.actualizar(ahora);
-    if (integrado && dentro(x,y,1129,55,58,43)) {
+    if (integrado && sobreCierreVentana(x,y)) {
       arrastrando = false;
       quiereSalir = true;
       return;

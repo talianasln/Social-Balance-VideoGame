@@ -1,10 +1,21 @@
+final float MENU_X = 520;
+final float MENU_Y = 350;
+final float MENU_PASO = 75;
+
+boolean sobreOpcionMenu(int indice) {
+  float y = MENU_Y + indice * MENU_PASO;
+  return mouseJuegoX() >= MENU_X && mouseJuegoX() <= MENU_X + 240 &&
+         mouseJuegoY() >= y && mouseJuegoY() <= y + 60;
+}
+
 void mostrarMenu() {
 
   image(fondoInicio, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
 
-  boton("NUEVO JUEGO", 520, 225);
-  boton("CONTINUAR", 520, 300);
-  boton("CONFIGURACIÓN", 520, 375);
+  boton("NUEVO JUEGO", MENU_X, MENU_Y);
+  boton("CONTINUAR", MENU_X, MENU_Y + MENU_PASO);
+  boton("CONFIGURACIÓN", MENU_X, MENU_Y + 2 * MENU_PASO);
+  boton("SALIR", MENU_X, MENU_Y + 3 * MENU_PASO);
 }
 
 
@@ -46,15 +57,17 @@ void mousePressed() {
   if (pantalla == 0) {
 
     // NUEVO JUEGO
-    if (mouseJuegoX() >= 520 && mouseJuegoX() <= 760 &&
-        mouseJuegoY() >= 225 && mouseJuegoY() <= 285) {
+    if (sobreOpcionMenu(0)) {
 
       reiniciarDia();
       pantalla = 1;
 
       // Reiniciar selección
       personajeSeleccionado = 0;
-      tonoSeleccionado = -1;
+
+    }
+    else if (sobreOpcionMenu(3)) {
+      exit();
     }
   }
 
@@ -62,52 +75,7 @@ void mousePressed() {
   // ================= SELECCIÓN PERSONAJE =================
 
   else if (pantalla == 1) {
-
-    // HOMBRE
-    if (mouseJuegoX() >= 285 && mouseJuegoX() <= 620 &&
-        mouseJuegoY() >= 90 && mouseJuegoY() <= 485) {
-
-      personajeSeleccionado = 1;
-    }
-
-
-    // MUJER
-    else if (mouseJuegoX() >= 660 && mouseJuegoX() <= 995 &&
-             mouseJuegoY() >= 90 && mouseJuegoY() <= 485) {
-
-      personajeSeleccionado = 2;
-    }
-
-
-    // BLANCO
-    else if (dist(mouseJuegoX(), mouseJuegoY(), 520, 550) <= 27.5) {
-
-      tonoSeleccionado = 0;
-    }
-
-
-    // TRIGUEÑO
-    else if (dist(mouseJuegoX(), mouseJuegoY(), 640, 550) <= 27.5) {
-
-      tonoSeleccionado = 1;
-    }
-
-
-    // MORENO
-    else if (dist(mouseJuegoX(), mouseJuegoY(), 760, 550) <= 27.5) {
-
-      tonoSeleccionado = 2;
-    }
-
-
-    // COMENZAR
-    else if (personajeSeleccionado != 0 &&
-             tonoSeleccionado != -1 &&
-             mouseJuegoX() >= 520 && mouseJuegoX() <= 760 &&
-             mouseJuegoY() >= 620 && mouseJuegoY() <= 680) {
-
-      pantalla = 2;
-    }
+    seleccionarPersonajeConClick();
   }
   // ================= NIVEL 1 =================
 

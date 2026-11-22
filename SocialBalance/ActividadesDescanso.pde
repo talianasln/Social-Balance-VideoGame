@@ -17,14 +17,14 @@ ObjetoInteractivo objetoCercano() {
 
 void mostrarAyudaRecorrido() {
   ObjetoInteractivo objeto = objetoCercano();
-  String mensaje = "WASD / Flechas: moverte";
+  String mensaje = "Acércate a alguna zona para interactuar";
   if (objeto == cama) mensaje = "E: descansar en la cama";
   else if (objeto == celular) mensaje = "E: usar el celular";
   else if (objeto == escritorio) mensaje = "E: actividades académicas";
   pushStyle();
   rectMode(CORNER);
   fill(22, 19, 24, 230); stroke(206, 165, 150);
-  rect(430, 665, 420, 40, 9);
+  rect(330, 665, 620, 40, 9);
   fill(255, 225, 210); textSize(18); textAlign(CENTER, CENTER);
   text(mensaje, 640, 685);
   popStyle();
@@ -101,7 +101,7 @@ abstract class PanelActividad extends ObjetoInteractivo {
 }
 
 class Cama extends PanelActividad {
-  Cama() { super("DESCANSAR",745,1160,475,625); }
+  Cama() { super("DESCANSAR",700,1160,475,640); }
   String accion() { return "DESCANSAR " + duracion + " MINUTOS"; }
   String detalle() {
     int recuperacion = min(100-hud.energia,duracion==15 ? 10 : 20);
@@ -118,7 +118,7 @@ class Cama extends PanelActividad {
 }
 
 class Celular extends PanelActividad {
-  Celular() { super("CELULAR · REDES SOCIALES",1145,1260,620,690); }
+  Celular() { super("CELULAR · REDES SOCIALES",1120,1260,610,690); }
   String accion() { return "USAR CELULAR " + duracion + " MINUTOS"; }
   String detalle() {
     int costo = duracion==15 ? 3 : 6;

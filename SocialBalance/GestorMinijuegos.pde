@@ -289,12 +289,10 @@ class GestorMinijuegos {
 
 void reiniciarDia() {
   hud=new HUD();
-  escritorio=new Escritorio(390, 455);
+  escritorio=new Escritorio();
   cama=new Cama();
   celular=new Celular();
   gestorMinijuegos=new GestorMinijuegos();
-  jugador.x=500;
-  jugador.y=200;
-  jugador.detenerMovimiento();
+  jugador.reiniciarPosicion();
   instrucciones.abrir();
 }

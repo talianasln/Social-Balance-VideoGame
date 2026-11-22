@@ -57,37 +57,23 @@ class VistaMemoria {
     pushStyle();
     imageMode(CORNER);
 
-    // Fondo del minijuego.
-    noStroke();
-    fill(15, 13, 22, 245);
-    rect(0, 0, ANCHO_JUEGO, ALTO_JUEGO);
-
-    fill(37, 32, 45);
-    rect(75, 44, 1130, 632, 18);
+    dibujarFondoMinijuego();
 
     // Encabezado.
-    fill(240, 212, 197);
+    fill(255, 235, 220);
     textAlign(LEFT, CENTER);
     textSize(30);
-    text("SOCIAL BALANCE / MEMORIA", 120, 95);
+    text("SOCIAL BALANCE / MEMORIA", 120, 65);
 
-    fill(187, 174, 186);
+    fill(75, 57, 60);
     textSize(15);
     text(
       "Encuentra las seis parejas y relaciona cada imagen con un hábito digital.",
       122, 129
     );
 
-    // Botón para salir.
-    fill(61, 42, 61);
-    stroke(228, 178, 159);
-    rect(1147, 57, 41, 35, 6);
-
-    fill(255);
-    noStroke();
-    textAlign(CENTER, CENTER);
-    textSize(19);
-    text("X", 1167, 74);
+    dibujarCierreVentana();
+    textAlign(CENTER,CENTER);
 
     // Panel de parejas.
     fill(58, 48, 62);
@@ -153,11 +139,11 @@ class VistaMemoria {
     textSize(18);
 
     if (memoria.estaEnVictoria()) {
-      fill(156, 238, 173);
+      fill(35, 105, 65);
     } else if (memoria.estaEnDerrota()) {
-      fill(255, 149, 149);
+      fill(155, 45, 55);
     } else {
-      fill(226, 205, 195);
+      fill(65, 39, 45);
     }
 
     text(aviso, ANCHO_JUEGO / 2, 169);
@@ -172,7 +158,7 @@ class VistaMemoria {
     }
 
     // Instrucción inferior.
-    fill(166, 147, 161);
+    fill(75, 57, 60);
     textSize(14);
     textAlign(CENTER, CENTER);
 
@@ -337,8 +323,7 @@ class VistaMemoria {
 
     // Botón X.
     if (
-      px >= 1147 && px <= 1188 &&
-      py >= 57 && py <= 92
+      sobreCierreVentana(px,py)
     ) {
       quiereSalir = true;
       return;

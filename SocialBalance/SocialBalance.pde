@@ -1,21 +1,14 @@
 boolean modoDebug = false;
+PFont fuenteJuego;
 PImage fondoInicio;
 
-// Imágenes para selección de personaje
-PImage hombreBlanco;
-PImage hombreTrigueno;
-PImage hombreMoreno;
-
 PImage fondoInterfazEscritorio;
+PImage fondoMinijuegos;
 PImage imagenTarjetaTarea;
 
-PImage mujerBlanca;
-PImage mujerTriguena;
-PImage mujerMorena;
-
 // Fondos de habitaciones
-PImage cuartoHombre;
-PImage cuartoMujer;
+PImage cuarto2;
+PImage cuarto1;
 
 // Pantallas
 int pantalla = 0;
@@ -24,15 +17,7 @@ int pantalla = 0;
 // 2 = Nivel 1
 
 int personajeSeleccionado = 0;
-// 0 = Ninguno
-// 1 = Hombre
-// 2 = Mujer
-
-int tonoSeleccionado = -1;
-// -1 = Ninguno
-// 0 = Blanco
-// 1 = Trigueño
-// 2 = Moreno
+// 0 = Ninguno, 1 = Chico, 2 = Chica, 3 = NoBin
 
 // Objetos principales
 Jugador jugador;
@@ -58,29 +43,24 @@ void setup() {
 
   // Mantener estilo Pixel Art
   noSmooth();
+  // Fuente lógica de Java: disponible también en los equipos de los compañeros.
+  fuenteJuego = new PFont(new java.awt.Font("SansSerif",java.awt.Font.BOLD,24),true);
+  textFont(fuenteJuego);
 
   // Menú principal
   fondoInicio = loadImage("PantallaDeInicio.png");
 
-  // Selección de personaje masculino
-  hombreBlanco = loadImage("HombreEstaticoBlanco.png");
-  hombreTrigueno = loadImage("HombreEstaticoTrigueño.png");
-  hombreMoreno = loadImage("HombreEstaticoMoreno.png");
-
-  // Selección de personaje femenino
-  mujerBlanca = loadImage("MujerEstaticaBlanca.png");
-  mujerTriguena = loadImage("MujerEstaticaTrigueña.png");
-  mujerMorena = loadImage("MujerEstaticaMorena.png");
+  prepararPersonajes();
 
   // Habitaciones
-  cuartoHombre = loadImage("CuartoHombre.png");
-  cuartoMujer = loadImage("CuartoMujer.png");
+  cuarto2 = loadImage("Cuarto2.png");
+  cuarto1 = loadImage("Cuarto1.png");
 
   // Crear jugador (carga el nuevo spritesheet)
   jugador = new Jugador();
 
   // Escritorio
-  escritorio = new Escritorio(390, 455);
+  escritorio = new Escritorio();
 
   // HUD
   hud = new HUD();
@@ -88,13 +68,14 @@ void setup() {
   celular = new Celular();
 
   // Instrucciones
-  imagenInstrucciones = loadImage("Instrucciones.png");
+  // Las instrucciones ahora se dibujan como texto sobre VentanaEmergente.
   instrucciones = new Instrucciones(imagenInstrucciones);
 
   // Minijuego
   gestorMinijuegos = new GestorMinijuegos();
 
   fondoInterfazEscritorio = loadImage("InterfazEscritorio.png");
+  fondoMinijuegos = loadImage("VentanaEmergente.PNG");
   imagenTarjetaTarea = loadImage("TarjetaTarea.png");
 
   // Imágenes de las cartas de Memoria
@@ -128,26 +109,9 @@ void dibujarJuego() {
 
     // ================= HABITACIÓN =================
 
-    if (personajeSeleccionado == 1) {
-
-      image(
-        cuartoHombre,
-        0,
-        0,
-        ANCHO_JUEGO,
-        ALTO_JUEGO
-        );
-    } else if (personajeSeleccionado == 2) {
-
-      image(
-        cuartoMujer,
-        0,
-        0,
-        ANCHO_JUEGO,
-        ALTO_JUEGO
-        );
-    }
-
+    // Cuarto1: Chica. Cuarto2: Chico y NoBin.
+    PImage cuartoActual = personajeSeleccionado == 2 ? cuarto1 : cuarto2;
+    if (cuartoActual != null) image(cuartoActual, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
 
     // ================= JUGADOR =================
 
@@ -170,7 +134,7 @@ void dibujarJuego() {
 
     // ================= HUD =================
 
-    hud.mostrar();
+    if (!escritorio.interfazAbierta) hud.mostrar();
     cama.mostrar();
     celular.mostrar();
 

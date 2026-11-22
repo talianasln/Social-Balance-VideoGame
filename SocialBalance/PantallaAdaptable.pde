@@ -29,6 +29,7 @@ boolean mouseDentroDelJuego() {
 }
 
 void draw() {
+  if (fuenteJuego!=null) textFont(fuenteJuego);
   background(0);
   pushMatrix();
   translate(margenJuegoX(), margenJuegoY());
