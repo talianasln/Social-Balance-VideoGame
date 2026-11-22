@@ -50,7 +50,7 @@ class GestorMinijuegos {
         reversoMemoria
         );
     } else if (activo==3) {
-      verdaderoFalso=new VerdaderoFalso();
+      verdaderoFalso=new VerdaderoFalso((long)millis());
       vistaVerdaderoFalso=new VistaVerdaderoFalso(verdaderoFalso, true);
     }
   }

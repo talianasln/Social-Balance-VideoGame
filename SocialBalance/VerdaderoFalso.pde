@@ -2,7 +2,6 @@
 // Adaptado para jugar sin derrota por tiempo y leer las explicaciones con calma.
 // No depende de la interfaz, el raton, imagenes ni Processing.
 class VerdaderoFalso {
-  static final int INTRO = 0;
   static final int JUGANDO = 1;
   static final int EXPLICACION = 2;
   static final int VICTORIA = 3;
@@ -36,7 +35,7 @@ class VerdaderoFalso {
 
   final int[] orden = new int[7];
   final java.util.Random azar;
-  int estado = INTRO;
+  int estado = JUGANDO;
   int posicion = 0;
   int aciertos = 0;
   int errores = 0;
@@ -45,11 +44,11 @@ class VerdaderoFalso {
   long inicioReloj = -1;
   long inicioExplicacion = -1;
 
-  VerdaderoFalso() { this(new java.util.Random()); }
-  VerdaderoFalso(java.util.Random azar) {
+  VerdaderoFalso(long ahora) { this(new java.util.Random(), ahora); }
+  VerdaderoFalso(java.util.Random azar, long ahora) {
     if (azar == null) throw new IllegalArgumentException("Se necesita un generador aleatorio.");
     this.azar = azar;
-    reiniciar(0L);
+    reiniciar(ahora);
   }
 
   void reiniciar(long ahora) {
@@ -67,17 +66,11 @@ class VerdaderoFalso {
       int temp = orden[0]; orden[0] = orden[1]; orden[1] = temp;
     }
     ronda++;
-    estado = INTRO;
-    posicion = aciertos = errores = 0;
-    inicioReloj = inicioExplicacion = -1;
-    ultimaCorrecta = false;
-  }
-
-  boolean comenzar(long ahora) {
-    if (estado != INTRO) return false;
     estado = JUGANDO;
+    posicion = aciertos = errores = 0;
     inicioReloj = ahora;
-    return true;
+    inicioExplicacion = -1;
+    ultimaCorrecta = false;
   }
 
   void actualizar(long ahora) {
@@ -107,7 +100,6 @@ class VerdaderoFalso {
   }
 
   int segundosRestantes(long ahora) {
-    if (estado == INTRO) return 90;
     if (estado == DERROTA_TIEMPO) return 0;
     long restante = Math.max(0L, LIMITE_MS - (ahora - inicioReloj));
     return (int)((restante + 999L) / 1000L);
