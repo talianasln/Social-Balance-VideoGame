@@ -42,6 +42,30 @@ class VistaVerdaderoFalso {
       dibujarCierreVentana();
     }
 
+    // Introduccion corta que da sentido educativo al reto.
+    if (juego.estado == VerdaderoFalso.INTRO) {
+      fill(65,39,45);
+      textAlign(CENTER,CENTER);
+      textSize(35);
+      text("Desafío de ciudadanía digital",ANCHO_JUEGO/2,183);
+      fill(75,57,60);
+      textSize(21);
+      text("Tu universidad te invitó a una evaluacion breve sobre redes sociales.",ANCHO_JUEGO/2,243);
+      text("Decide si cada una de las siete afirmaciones es verdadera o falsa.",ANCHO_JUEGO/2,279);
+      fill(45,40,54);
+      stroke(137,109,125);
+      rect(185,322,910,155,14);
+      fill(245,219,205);
+      textSize(19);
+      text("ARRASTRA LA TARJETA:  IZQUIERDA = FALSO  |  DERECHA = VERDADERO",ANCHO_JUEGO/2,366);
+      fill(204,185,195);
+      textSize(18);
+      text("Sin límite de tiempo real. Ganas con 5 aciertos; 3 errores terminan el intento.",ANCHO_JUEGO/2,416);
+      boton(470,523,340,67,"COMENZAR RETO");
+      popStyle();
+      return;
+    }
+
     int seg = juego.inicioReloj < 0 ? 0 : (int)((ahora-juego.inicioReloj)/1000);
     String tiempo = nf(seg / 60,2) + ":" + nf(seg % 60,2);
     fill(65,39,45);
@@ -148,6 +172,10 @@ class VistaVerdaderoFalso {
     if (integrado && sobreCierreVentana(x,y)) {
       arrastrando = false;
       quiereSalir = true;
+      return;
+    }
+    if (juego.estado == VerdaderoFalso.INTRO) {
+      if (dentro(x,y,470,523,340,67)) juego.comenzar(ahora);
       return;
     }
     if (juego.terminado()) {
