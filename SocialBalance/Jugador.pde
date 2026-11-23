@@ -200,10 +200,11 @@ void mostrar() {
 void keyPressed() {
   if (key==ESC) {
     key=0; // Evita que Processing cierre el sketch automáticamente.
-    abrirMenuPausa();
+    if (configuracionAudio.abierta) configuracionAudio.cerrar();
+    else if (!finalDelDia.activo && !entradaPartida.activa) abrirMenuPausa();
     return;
   }
-  if (menuPausaAbierto || (pantalla==2 && cama.actividadEnCurso)) return;
+  if (finalDelDia.activo || entradaPartida.activa || menuPausaAbierto || (pantalla==2 && cama.actividadEnCurso)) return;
   if (pantalla == 2 && gestorMinijuegos.activo != 0) {
     gestorMinijuegos.teclear(key,keyCode);
     return;

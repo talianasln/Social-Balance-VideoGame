@@ -329,6 +329,7 @@ class GestorMinijuegos {
 }
 
 void reiniciarDia() {
+  finalDelDia.reiniciar();
   escenarios.reiniciar();
   avisosPlazo=new AvisosPlazo();
   encargoBiblioteca=new EncargoBiblioteca();

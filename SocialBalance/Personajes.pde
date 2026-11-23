@@ -14,11 +14,11 @@ PersonajeConfig[] personajes;
 
 void prepararPersonajes() {
   personajes = new PersonajeConfig[] {
-    new PersonajeConfig("Chico","ChicoEstatico.png","ChicoNivel1Descanso.png","ChicoNivel2Descanso.png",
-                        "ChicoNivel1Movimientos.png","ChicoNivel2Movimientos.png"),
-    new PersonajeConfig("Chica","ChicaEstatica.png","ChicaNivel1Descanso.png","ChicaNivel2Descanso.png",
+    new PersonajeConfig("Eduardo","ChicoEstatico.png",null,"ChicoNivel2Descanso.png",
+                        "ChicoPijamaMovimientos.png","ChicoNivel2Movimientos.png"),
+    new PersonajeConfig("Margarita","ChicaEstatica.png","ChicaNivel1Descanso.png","ChicaNivel2Descanso.png",
                         "ChicaNivel1Movimientos.png","ChicaNivel2Movimientos.png"),
-    new PersonajeConfig("NoBin","NoBinEstatica.png","NoBinNivel1Descanso.png","NoBinNivel2Descanso.png",
+    new PersonajeConfig("Alex","NoBinEstatica.png","NoBinNivel1Descanso.png","NoBinNivel2Descanso.png",
                         "NoBinNivel1Movimientos.png","NoBinNivel2Movimientos.png")
   };
   for (PersonajeConfig p : personajes) p.preview=cargarImagenPersonaje(p.seleccion,resolucionSprite(330),false);

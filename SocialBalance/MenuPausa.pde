@@ -29,8 +29,7 @@ void procesarMenuPausa() {
   else if (sobreSeleccion(520,398,240,60)) {
     if (pantalla==2 && !escenarios.cambiando() && gestorMinijuegos.activo==0) guardado.guardar();
     cerrarMenuPausa();
-    pantalla=0;
-    personajeSeleccionado=0;
+    entradaPartida.iniciar(0);
   }
 }
 

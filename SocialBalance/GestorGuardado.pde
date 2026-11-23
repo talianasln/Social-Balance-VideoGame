@@ -3,7 +3,7 @@ final GestorGuardado guardado=new GestorGuardado(
 
 class GestorGuardado {
   private final java.nio.file.Path archivo;
-  private final String FORMATO="SOCIALBALANCE 1";
+  private final String FORMATO="SOCIALBALANCE 2";
   String avisoMenu="";
 
   GestorGuardado(java.nio.file.Path archivo) { this.archivo=archivo; }
@@ -84,7 +84,9 @@ class GestorGuardado {
   }
 
   private EstadoPartida leer(java.io.BufferedReader entrada) throws java.io.IOException {
-    exigir(FORMATO.equals(entrada.readLine()));
+    String cabecera=entrada.readLine();
+    boolean formatoAnterior="SOCIALBALANCE 1".equals(cabecera);
+    exigir(formatoAnterior || FORMATO.equals(cabecera));
     EstadoPartida estado=new EstadoPartida();
     String[] datos=registro(entrada,"jugador",5);
     estado.personaje=entero(datos[1],1,personajes.length);
@@ -120,7 +122,10 @@ class GestorGuardado {
     estado.libros=new int[estantes];
     estado.estantesRevisados=new boolean[estantes];
     java.util.HashSet<Integer> libros=new java.util.HashSet<Integer>();
-    for (int i=0; i<estantes; i++) {
+    // Las partidas anteriores comparten los dos accesos centrales. El sexto queda vacío.
+    java.util.Arrays.fill(estado.libros,-1);
+    int estantesGuardados=formatoAnterior ? 5 : estantes;
+    for (int i=0; i<estantesGuardados; i++) {
       datos=registro(entrada,"estante",2);
       int libro=entero(datos[1],-1,encargoBiblioteca.libros.length-1);
       exigir(libro==-1 || libros.add(libro));

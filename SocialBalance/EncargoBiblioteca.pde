@@ -5,7 +5,7 @@ boolean puedeMostrarEncargo() {
 class EncargoBiblioteca {
   final int HORA_ENCARGO=12*60;
   final int COSTO_BUSQUEDA=10;
-  final int DESCANSO_ADICIONAL=60;
+  final int DESCANSO_ADICIONAL=75;
   final String[] libros={"Bienestar digital", "Fundamentos de ciberseguridad", "Hábitos de estudio"};
   // Marcadores sobre los estantes y zonas alcanzables desde el suelo.
   final float[][] estantes={
@@ -16,9 +16,7 @@ class EncargoBiblioteca {
     {520,160, 500,249,565,320},
     {750,155, 703,249,805,320}
   };
-  // Los dos accesos nuevos pertenecen al mismo estante central.
-  final int[] busquedaPorZona={0,1,2,3,4,4};
-  final int[] libroPorEstante={0,1,2,-1,-1};
+  final int[] libroPorEstante={0,1,2,-1,-1,-1};
   final boolean[] revisados=new boolean[libroPorEstante.length];
   final boolean[] encontrados=new boolean[3];
   boolean abierto;
@@ -51,8 +49,7 @@ class EncargoBiblioteca {
     for (int i=0; i<estantes.length; i++) {
       float[] zona=estantes[i];
       float x=jugador.piesX(), y=jugador.piesY();
-      int busqueda=busquedaPorZona[i];
-      if (!revisados[busqueda] && x>=zona[2] && y>=zona[3] && x<=zona[4] && y<=zona[5]) return busqueda;
+      if (!revisados[i] && x>=zona[2] && y>=zona[3] && x<=zona[4] && y<=zona[5]) return i;
     }
     return -1;
   }
@@ -115,7 +112,7 @@ class EncargoBiblioteca {
     pushStyle();
     rectMode(CORNER);
     for (int i=0; i<estantes.length; i++) {
-      if (revisados[busquedaPorZona[i]]) continue;
+      if (revisados[i]) continue;
       float x=estantes[i][0], y=estantes[i][1]+sin(millis()*0.005+i)*5;
       fill(255,241,175);
       stroke(197,121,34);

@@ -37,7 +37,18 @@ void draw() {
   translate(margenJuegoX(), margenJuegoY());
   scale(escalaJuego());
   int ahora=millis();
-  if (pantalla==2) {
+  entradaPartida.actualizar(ahora);
+  finalDelDia.actualizar(ahora);
+  musicaAmbiente.actualizar(ahora);
+  if (finalDelDia.cubreJuego(ahora)) {
+    escalaTemblor=1;
+    temblorX=temblorY=0;
+    finalDelDia.mostrar(ahora);
+    entradaPartida.mostrar(ahora);
+    popMatrix();
+    return;
+  }
+  if (pantalla==2 && !entradaPartida.activa) {
     escenarios.actualizar(ahora);
     cama.actualizarActividad(ahora);
     celular.actualizarActividad(ahora);
@@ -50,6 +61,8 @@ void draw() {
   translate(temblorX,temblorY);
   scale(escalaTemblor);
   dibujarJuego();
+  entradaPartida.mostrar(ahora);
+  finalDelDia.mostrar(ahora);
   if (menuPausaAbierto) mostrarMenuPausa();
   popMatrix();
 }

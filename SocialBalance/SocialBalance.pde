@@ -96,6 +96,8 @@ void setup() {
   imagenesMemoria[3] = loadImage("RespetoTM.png");
   imagenesMemoria[4] = loadImage("TiempoTM.png");
   imagenesMemoria[5] = loadImage("CelularTM.png");
+  finalDelDia.cargar();
+  musicaAmbiente.cargar();
   presentacionInicial.iniciar();
 }
 
@@ -137,6 +139,7 @@ void dibujarJuego() {
     else if (cuartoActual != null) image(cuartoActual, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
 
     escenarios.dibujarEstanteCentral();
+    if (escenarios.enHabitacion() && !fondoDescanso) dibujarBrillosHabitacion(ahora);
 
     // ================= JUGADOR =================
 

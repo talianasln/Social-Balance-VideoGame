@@ -63,6 +63,7 @@ class Escenarios {
     if (enTransicion || !cercaPuerta()) return false;
     if (actual==HABITACION) cambiar(PASILLO,974,446,millis());
     else cambiar(HABITACION,640,520,millis());
+    reproducirEfecto("PuertaAbriendo.wav");
     return true;
   }
 

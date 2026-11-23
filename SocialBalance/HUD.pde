@@ -16,157 +16,59 @@ class HUD {
   int minutos = 0;
 
 
+  final PFont letraHUD = new PFont(new java.awt.Font("SansSerif",java.awt.Font.PLAIN,20),true);
+
   void mostrar() {
-
     pushStyle();
-
-    // ================= HORA =================
-
-    dibujarTarjetaHora(25, 20);
-
-
-    // ================= ENERGÍA =================
-
-    dibujarBarra(
-      "ENERGÍA",
-      energia,
-      false,
-      175,
-      20
-    );
-
-
-    // ================= ESTRÉS =================
-
-    dibujarBarra(
-      "ESTRÉS",
-      estres,
-      true,
-      425,
-      20
-    );
-
-
-    // ================= CONCENTRACIÓN =================
-
-    dibujarBarra(
-      "CONCENTRACIÓN",
-      concentracion,
-      false,
-      675,
-      20
-    );
-
-
-    // ================= AYUDA =================
-
+    rectMode(CORNER);
+    textFont(letraHUD);
+    tarjetaHUD(25,20,125);
+    fill(85,48,57);
+    textAlign(CENTER,CENTER);
+    textSize(20);
+    text(obtenerHora(),87.5,49);
+    dibujarBarra("Energía",energia,energia,175,color(239,204,137));
+    dibujarBarra("Estrés",estres,100-estres,425,color(224,159,169));
+    dibujarBarra("Concentración",concentracion,concentracion,675,color(171,187,216));
     dibujarBotonAyuda();
-
     popStyle();
   }
 
-
-  void dibujarTarjetaHora(float x, float y) {
-
-    fill(0, 190);
-    stroke(255);
-    strokeWeight(2);
-
-    rect(x, y, 125, 60, 10);
-
-
-    fill(255);
-    textAlign(CENTER, CENTER);
-    textSize(21);
-
-    text(
-      obtenerHora(),
-      x + 62.5,
-      y + 30
-    );
-  }
-
-
-  void dibujarBarra(
-    String nombre,
-    int valor,
-    boolean invertirColor,
-    float x,
-    float y
-  ) {
-
-    float ancho = 220;
-    float alto = 60;
-
-
-    // Caja
-    fill(0, 190);
-    stroke(255);
-    strokeWeight(2);
-
-    rect(x, y, ancho, alto, 10);
-
-
-    // Nombre
-    fill(255);
-    textAlign(LEFT, CENTER);
-    textSize(14);
-
-    text(
-      nombre,
-      x + 15,
-      y + 18
-    );
-
-
-    // Valor
-    textAlign(RIGHT, CENTER);
-
-    text(
-      valor + "/100",
-      x + ancho - 15,
-      y + 18
-    );
-
-
-    // Fondo de barra
+  private void tarjetaHUD(float x,float y,float ancho) {
     noStroke();
-    fill(70);
-
-    rect(
-      x + 15,
-      y + 36,
-      ancho - 30,
-      10,
-      5
-    );
-
-
-    // Barra
-    fill(colorEstado(invertirColor ? 100-valor : valor));
-
-    float anchoBarra = map(
-      valor,
-      0,
-      100,
-      0,
-      ancho - 30
-    );
-
-    rect(
-      x + 15,
-      y + 36,
-      anchoBarra,
-      10,
-      5
-    );
+    fill(63,35,43,100);
+    rect(x,y+3,ancho,56,10);
+    fill(253,239,221);
+    stroke(154,94,99);
+    strokeWeight(1.5);
+    rect(x,y,ancho,56,10);
   }
 
+  private void dibujarBarra(String nombre,int valor,int bienestar,float x,int acento) {
+    float y=20;
+    tarjetaHUD(x,y,220);
+    noStroke();
+    fill(acento);
+    ellipse(x+16,y+17,9,9);
+    fill(77,46,56);
+    textAlign(LEFT,CENTER);
+    textSize(16);
+    text(nombre,x+26,y+17);
+    textAlign(RIGHT,CENTER);
+    textSize(14);
+    text(valor+"/100",x+205,y+17);
+    fill(226,207,199);
+    rect(x+13,y+33,194,12,6);
+    if (valor>0) {
+      fill(colorEstado(bienestar));
+      rect(x+13,y+33,194*valor/100.0,12,6);
+    }
+  }
 
   int colorEstado(int nivel) {
-    if (nivel<30) return color(237,99,105);
-    if (nivel>70) return color(113,214,151);
-    return lerpColor(color(245,159,80),color(249,224,108),map(nivel,30,70,0,1));
+    if (nivel<30) return color(218,133,140);
+    if (nivel>70) return color(153,188,147);
+    return lerpColor(color(230,170,111),color(242,215,139),map(nivel,30,70,0,1));
   }
 
   final int UMBRAL_EFECTO_ESTRES = 62;

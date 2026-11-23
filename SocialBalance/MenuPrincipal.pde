@@ -16,7 +16,8 @@ void mostrarMenu() {
   boton("CONTINUAR", MENU_X, MENU_Y + MENU_PASO);
   boton("CONFIGURACIÓN", MENU_X, MENU_Y + 2 * MENU_PASO);
   boton("SALIR", MENU_X, MENU_Y + 3 * MENU_PASO);
-  if (!guardado.avisoMenu.isEmpty()) {
+  if (configuracionAudio.abierta) configuracionAudio.mostrar();
+  else if (!guardado.avisoMenu.isEmpty()) {
     pushStyle();
     rectMode(CORNER); noStroke(); fill(45,31,41,235);
     rect(395,305,490,34,8);
@@ -58,12 +59,14 @@ void boton(String texto, float x, float y) {
 
 
 void mousePressed() {
-  if (presentacionInicial.activa || !mouseDentroDelJuego()) return;
+  if (presentacionInicial.activa || entradaPartida.activa || !mouseDentroDelJuego()) return;
+  if (finalDelDia.activo) { finalDelDia.procesarClick(millis()); return; }
   if (menuPausaAbierto) { procesarMenuPausa(); return; }
 
   // ================= MENÚ PRINCIPAL =================
 
   if (pantalla == 0) {
+    if (configuracionAudio.abierta) { configuracionAudio.presionar(); return; }
 
     // NUEVO JUEGO
     if (sobreOpcionMenu(0)) {
@@ -78,6 +81,9 @@ void mousePressed() {
     }
     else if (sobreOpcionMenu(1)) {
       guardado.continuar();
+    }
+    else if (sobreOpcionMenu(2)) {
+      configuracionAudio.abierta=true;
     }
     else if (sobreOpcionMenu(3)) {
       exit();
@@ -117,13 +123,15 @@ else if (pantalla == 2) {
 }
 
 void mouseDragged() {
-  if (menuPausaAbierto) return;
+  if (configuracionAudio.abierta) { configuracionAudio.arrastrar(); return; }
+  if (finalDelDia.activo || menuPausaAbierto) return;
   if (pantalla==2 && gestorMinijuegos.activo==3 && !gestorMinijuegos.modalAbierto())
     gestorMinijuegos.vistaVerdaderoFalso.arrastrar(mouseJuegoX(),mouseJuegoY());
 }
 
 void mouseReleased() {
-  if (menuPausaAbierto || pantalla!=2 || gestorMinijuegos.modalAbierto()) return;
+  if (configuracionAudio.abierta) { configuracionAudio.soltar(); return; }
+  if (finalDelDia.activo || menuPausaAbierto || pantalla!=2 || gestorMinijuegos.modalAbierto()) return;
   if (gestorMinijuegos.activo==4) {
     gestorMinijuegos.vistaConceptos.soltar(mouseJuegoX(),mouseJuegoY());
   } else if (gestorMinijuegos.activo==5) {

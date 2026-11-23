@@ -6,7 +6,7 @@ final int MIN_CONCENTRACION_PARA_TAREA = 30;
 int penalizacionFalloMinutos = 15;
 
 boolean hayInterfazAbierta() {
-  return menuPausaAbierto || escenarios.cambiando() || escritorio.interfazAbierta || cama.interfazAbierta || celular.interfazAbierta ||
+  return finalDelDia.activo || menuPausaAbierto || entradaPartida.activa || escenarios.cambiando() || escritorio.interfazAbierta || cama.interfazAbierta || celular.interfazAbierta ||
          instrucciones.abierta || introduccionDomingo.abierta || encargoBiblioteca.abierto || hud.calendario.abierto || gestorMinijuegos.activo != 0 || gestorMinijuegos.derrota.length()>0;
 }
 
@@ -268,6 +268,13 @@ class Cama extends PanelActividad {
 
 class Celular extends PanelActividad {
   Celular() { super("CELULAR · REDES SOCIALES",1120,1260,610,690); }
+
+  @Override
+  void abrirInterfaz() {
+    super.abrirInterfaz();
+    vibrarCelular();
+  }
+
   PImage imagenPanel() { return imagenInterfazCelular; }
 
   void mostrarDetalle(boolean ilustrado) {

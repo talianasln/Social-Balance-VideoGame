@@ -8,8 +8,9 @@ class IntroduccionDomingo {
   }
 
   void procesarClick() {
-    if (sobreSeleccion(BOTON_X,BOTON_Y,BOTON_ANCHO,BOTON_ALTO)) {
+    if (abierta && sobreSeleccion(BOTON_X,BOTON_Y,BOTON_ANCHO,BOTON_ALTO)) {
       abierta=false;
+      reproducirEfecto("AlarmaComenzar.wav");
       guardado.guardar();
     }
   }
