@@ -80,7 +80,7 @@ void mousePressed() {
 
     }
     else if (sobreOpcionMenu(1)) {
-      guardado.continuar();
+      if (guardado.continuar()) entradaPartida.iniciar(2);
     }
     else if (sobreOpcionMenu(2)) {
       configuracionAudio.abierta=true;

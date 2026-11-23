@@ -23,8 +23,8 @@ class EntradaPartida {
     int tiempo=transcurrido(ahora);
     if (pantalla!=destino && tiempo>=INICIO_ENTRADA) {
       pantalla=destino;
-      if (destino==2) guardado.guardar();
-      else personajeSeleccionado=0;
+      if (destino==0) personajeSeleccionado=0;
+      else if (origen==1) guardado.guardar();
     }
     if (tiempo>=DURACION) activa=false;
   }

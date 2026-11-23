@@ -79,7 +79,6 @@ class GestorGuardado {
     encargoBiblioteca.restaurar(estado.bibliotecaSorteada,estado.libros,estado.estantesRevisados);
     introduccionDomingo.abierta=estado.introduccion;
     avisoMenu="";
-    pantalla=2;
     return true;
   }
 
