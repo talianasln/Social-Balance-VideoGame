@@ -1,3 +1,5 @@
+final float VOLVER_SELECCION_X = 145, VOLVER_SELECCION_Y = 605;
+
 float tarjetaPersonajeX(int indice) { return 145 + indice*340; }
 boolean sobreSeleccion(float x,float y,float w,float h) {
   return mouseJuegoX()>=x && mouseJuegoX()<=x+w && mouseJuegoY()>=y && mouseJuegoY()<=y+h;
@@ -24,6 +26,8 @@ void mostrarSeleccionPersonaje() {
     fill(255,230,215); textAlign(CENTER,CENTER); textSize(24);
     text(p.nombre,x+155,505);
   }
+  boton("VOLVER AL MENÚ",VOLVER_SELECCION_X,VOLVER_SELECCION_Y);
+  textAlign(CENTER,CENTER);
   boolean listo=personajeSeleccionado>=1 && personajeSeleccionado<=personajes.length;
   stroke(213,164,145); strokeWeight(2);
   fill(listo ? color(133,91,83) : color(55,49,56)); rect(490,605,300,60,9);
@@ -32,6 +36,11 @@ void mostrarSeleccionPersonaje() {
   popStyle();
 }
 void seleccionarPersonajeConClick() {
+  if (sobreSeleccion(VOLVER_SELECCION_X,VOLVER_SELECCION_Y,240,60)) {
+    personajeSeleccionado=0;
+    pantalla=0;
+    return;
+  }
   for(int i=0;i<personajes.length;i++) {
     if(sobreSeleccion(tarjetaPersonajeX(i),190,310,360)) { personajeSeleccionado=i+1; return; }
   }

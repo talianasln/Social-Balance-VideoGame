@@ -50,7 +50,8 @@ void boton(String texto, float x, float y) {
 
 
 void mousePressed() {
-  if (!mouseDentroDelJuego()) return;
+  if (presentacionInicial.activa || !mouseDentroDelJuego()) return;
+  if (menuPausaAbierto) { procesarMenuPausa(); return; }
 
   // ================= MENÚ PRINCIPAL =================
 
@@ -81,7 +82,17 @@ void mousePressed() {
 
 else if (pantalla == 2) {
     if (gestorMinijuegos.derrota.length()>0) { gestorMinijuegos.clickDerrota(); return; }
+    if (escenarios.cambiando() || cama.actividadEnCurso) return;
+    if (introduccionDomingo.abierta) { introduccionDomingo.procesarClick(); return; }
+    if (encargoBiblioteca.abierto || (puedeMostrarEncargo() && encargoBiblioteca.sobreBoton())) {
+      encargoBiblioteca.procesarClick();
+      return;
+    }
     if (gestorMinijuegos.activo != 0) { gestorMinijuegos.presionar(); return; }
+    if (puedeConsultarCalendario() && (hud.calendario.abierto || hud.calendario.sobreBoton())) {
+      hud.calendario.procesarClick();
+      return;
+    }
     if (cama.interfazAbierta) { cama.procesarClick(); return; }
     if (celular.interfazAbierta) { celular.procesarClick(); return; }
     if (instrucciones.abierta) {
@@ -94,13 +105,16 @@ else if (pantalla == 2) {
 }
 
 void mouseDragged() {
+  if (menuPausaAbierto) return;
   if (pantalla==2 && gestorMinijuegos.activo==3 && !gestorMinijuegos.modalAbierto())
     gestorMinijuegos.vistaVerdaderoFalso.arrastrar(mouseJuegoX(),mouseJuegoY());
 }
 
 void mouseReleased() {
-  if (pantalla!=2 || gestorMinijuegos.modalAbierto()) return;
-  if (gestorMinijuegos.activo==5) {
+  if (menuPausaAbierto || pantalla!=2 || gestorMinijuegos.modalAbierto()) return;
+  if (gestorMinijuegos.activo==4) {
+    gestorMinijuegos.vistaConceptos.soltar(mouseJuegoX(),mouseJuegoY());
+  } else if (gestorMinijuegos.activo==5) {
     gestorMinijuegos.vistaOrdenarPasos.soltar(mouseJuegoX(),mouseJuegoY());
   } else if (gestorMinijuegos.activo==3) {
     gestorMinijuegos.vistaVerdaderoFalso.soltar(mouseJuegoX(),mouseJuegoY(),(long)millis());

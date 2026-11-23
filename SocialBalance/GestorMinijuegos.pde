@@ -5,6 +5,7 @@ class GestorMinijuegos {
   int resultado = 0; // 0 jugando, 1 éxito, 2 fallo ya penalizado
   boolean confirmarSalida = false;
   boolean mostrarPista = false;
+  boolean mostrandoContexto;
   long inicioModal;
   String derrota = "";
   String avisoEscritorio = "";
@@ -36,7 +37,8 @@ class GestorMinijuegos {
     resultado=0;
     confirmarSalida=false;
     mostrarPista=false;
-    crearIntento();
+    mostrandoContexto=id!=1;
+    if (!mostrandoContexto) crearIntento();
     escritorio.cerrarInterfaz();
     jugador.detenerMovimiento();
     return true;
@@ -55,6 +57,7 @@ class GestorMinijuegos {
         );
     } else if (activo==3) {
       verdaderoFalso=new VerdaderoFalso();
+      verdaderoFalso.comenzar(millis());
       vistaVerdaderoFalso=new VistaVerdaderoFalso(verdaderoFalso, true);
     } else if (activo==4) {
       conceptos=new ConectarConceptos();
@@ -68,16 +71,16 @@ class GestorMinijuegos {
   }
 
   boolean puedeIntentar() {
-    return activo!=0 && resultado==0 && derrota.length()==0 &&
+    return activo!=0 && !mostrandoContexto && resultado==0 && derrota.length()==0 &&
       tareaActual().bloqueo().length()==0;
   }
 
   boolean modalAbierto() {
-    return confirmarSalida || mostrarPista || resultado!=0 || derrota.length()>0;
+    return mostrandoContexto || confirmarSalida || mostrarPista || resultado!=0 || derrota.length()>0;
   }
 
   void sincronizar() {
-    if (activo==0 || resultado!=0 || derrota.length()>0) return;
+    if (activo==0 || mostrandoContexto || resultado!=0 || derrota.length()>0) return;
     boolean exito=(activo==1 && contrasena.estaCompletado()) ||
       (activo==2 && vistaMemoria.memoria.completada()) ||
       (activo==3 && verdaderoFalso.completado()) ||
@@ -91,7 +94,6 @@ class GestorMinijuegos {
         hud.modificarConcentracion(-tarea.concentracion);
         tarea.completada=true;
         resultado=1;
-        comprobarViabilidad();
       }
       return;
     }
@@ -112,18 +114,12 @@ class GestorMinijuegos {
     }
     resultado=2;
     confirmarSalida=false;
-    comprobarViabilidad();
     return true;
   }
 
   void reintentar() {
     if (resultado!=2 || derrota.length()>0) return;
-    String bloqueo=tareaActual().bloqueo();
-    if (bloqueo.length()>0) {
-      avisoEscritorio=bloqueo;
-      volver();
-      return;
-    }
+    if (!tareaActual().bloqueo().isEmpty()) return;
     String textoAnterior=activo==1 ? vistaContrasena.textoIngresado : "";
     resultado=0;
     crearIntento();
@@ -131,6 +127,7 @@ class GestorMinijuegos {
   }
 
   void solicitarSalida() {
+    if (mostrandoContexto) { volver(); return; }
     if (activo==0 || derrota.length()>0) return;
     if (resultado!=0) {
       volver();
@@ -140,6 +137,7 @@ class GestorMinijuegos {
     if (!confirmarSalida) inicioModal=millis();
     confirmarSalida=true;
     if (activo==3) vistaVerdaderoFalso.arrastrando=false;
+    if (activo==4) conceptos.cancelarSeleccion();
     if (activo==5) vistaOrdenarPasos.cancelarArrastre();
   }
 
@@ -154,6 +152,7 @@ class GestorMinijuegos {
   }
 
   void volver() {
+    mostrandoContexto=false;
     activo=0;
     resultado=0;
     confirmarSalida=false;
@@ -162,19 +161,11 @@ class GestorMinijuegos {
     jugador.detenerMovimiento();
   }
 
-  void comprobarViabilidad() {
-    // Orden de plazos: con duraciones fijas, comprobar el orden más temprano
-    // detecta imposibilidad por tiempo sin inferir derrotas por recursos.
-    int finPosible=hud.minutosDelDia();
-    for (Tarea tarea : escritorio.tareas) {
-      if (tarea.completada) continue;
-      finPosible+=tarea.minutosNecesarios;
-      if (finPosible>tarea.limite || finPosible>FIN_DIA) {
-        derrota="Ya no alcanza el tiempo para terminar " + tarea.nombre + " dentro de su plazo.";
-        jugador.detenerMovimiento();
-        return;
-      }
-    }
+  void mostrarPlazoVencido(Tarea tarea) {
+    String motivo=tarea.bloqueoPorTiempo();
+    if (motivo.isEmpty()) return;
+    derrota=tarea.nombre + "\n" + motivo;
+    jugador.detenerMovimiento();
   }
 
   void mostrar() {
@@ -183,6 +174,7 @@ class GestorMinijuegos {
       return;
     }
     if (activo==0) return;
+    if (mostrandoContexto) { mostrarContextoTarea(activo); return; }
     if (!modalAbierto()) {
       if (activo==1) vistaContrasena.mostrar();
       else if (activo==2) vistaMemoria.mostrar();
@@ -208,12 +200,18 @@ class GestorMinijuegos {
       botonPanel("VOLVER AL RETO", 480, 490, 320);
     } else if (resultado!=0) {
       Tarea tarea=tareaActual();
-      String mensaje=resultado==1 ? "Completaste " + tarea.nombre + ".\nTiempo: +" + tarea.minutosNecesarios + " min   Energía: −" + tarea.energia +
-        "   Estrés: +" + tarea.estres + "\nHora actual: " + hud.obtenerHora() :
+      String bloqueo=resultado==2 ? tarea.bloqueo() : "";
+      String mensaje=resultado==1 ? "Completaste " + tarea.nombre + ".\nEnergía: −" + tarea.energia +
+        "   Estrés: +" + tarea.estres + "   Concentración: −" + tarea.concentracion + "\nHora actual: " + hud.obtenerHora() :
         "Este intento no superó el reto. Pasaron " + penalizacionFalloMinutos + " minutos.\nNo se descontó energía ni aumentó el estrés.\nHora actual: " + hud.obtenerHora();
       panelMensaje(resultado==1 ? "¡ACTIVIDAD COMPLETADA!" : "INTENTO NO SUPERADO", mensaje);
-      if (resultado==1) botonPanel("VOLVER AL ESCRITORIO", 445, 480, 390);
-      else {
+      if (resultado==1) {
+        avisoResultado("Te quedan " + tarea.duracion() + " menos en el día.");
+        botonPanel("VOLVER AL ESCRITORIO", 445, 480, 390);
+      } else if (!bloqueo.isEmpty()) {
+        avisoResultado(bloqueo);
+        botonPanel("VOLVER AL ESCRITORIO", 445, 480, 390);
+      } else {
         botonPanel("REINTENTAR", 330, 480, 290);
         botonPanel("VOLVER AL ESCRITORIO", 660, 480, 290);
       }
@@ -224,6 +222,14 @@ class GestorMinijuegos {
     float x=mouseJuegoX(), y=mouseJuegoY();
     if (derrota.length()>0) {
       clickDerrota();
+      return;
+    }
+    if (mostrandoContexto) {
+      if (sobreCierreVentana(x,y)) volver();
+      else if (sobreSeleccion(450,533,380,60)) {
+        mostrandoContexto=false;
+        crearIntento();
+      }
       return;
     }
     if (confirmarSalida) {
@@ -239,9 +245,10 @@ class GestorMinijuegos {
       return;
     }
     if (resultado!=0) {
-      if (resultado==1 && dentroPanel(445, 480, 390)) volver();
-      else if (resultado==2 && dentroPanel(330, 480, 290)) reintentar();
-      else if (resultado==2 && dentroPanel(660, 480, 290)) volver();
+      boolean puedeReintentar=resultado==2 && tareaActual().bloqueo().isEmpty();
+      if (!puedeReintentar && dentroPanel(445, 480, 390)) volver();
+      else if (puedeReintentar && dentroPanel(330, 480, 290)) reintentar();
+      else if (puedeReintentar && dentroPanel(660, 480, 290)) volver();
       return;
     }
     if (activo==1) vistaContrasena.presionar(x, y);
@@ -287,6 +294,15 @@ class GestorMinijuegos {
     text(mensaje, 220, 280, 840, 155);
     popStyle();
   }
+  void avisoResultado(String mensaje) {
+    pushStyle();
+    fill(255,122,122);
+    textAlign(CENTER,CENTER);
+    textSize(21);
+    text(mensaje,640,438);
+    popStyle();
+  }
+
   void botonPanel(String nombre, float x, float y, float ancho) {
     pushStyle();
     rectMode(CORNER);
@@ -303,7 +319,7 @@ class GestorMinijuegos {
     return mouseJuegoX()>=x && mouseJuegoX()<=x+ancho && mouseJuegoY()>=y && mouseJuegoY()<=y+55;
   }
   void mostrarDerrota() {
-    panelMensaje("VOLVAMOS A PLANEAR EL DÍA", derrota + "\nPuedes reiniciar y probar otro orden de actividades.");
+    panelMensaje("NO COMPLETASTE EL DÍA", derrota + "\nPuedes reiniciar y probar otro orden de actividades.");
     botonPanel("REINICIAR EL DÍA", 440, 480, 400);
   }
   void clickDerrota() {
@@ -312,11 +328,15 @@ class GestorMinijuegos {
 }
 
 void reiniciarDia() {
+  escenarios.reiniciar();
+  avisosPlazo=new AvisosPlazo();
+  encargoBiblioteca=new EncargoBiblioteca();
   hud=new HUD();
   escritorio=new Escritorio();
   cama=new Cama();
   celular=new Celular();
   gestorMinijuegos=new GestorMinijuegos();
   jugador.reiniciarPosicion();
-  instrucciones.abrir();
+  instrucciones.cerrar();
+  introduccionDomingo.abierta=true;
 }

@@ -1,18 +1,19 @@
 // Nombres de los PNG en data. Cambiar aquí si se renombran los recursos.
 class PersonajeConfig {
-  String nombre, seleccion, descanso, movimientos;
+  String nombre, seleccion, descanso, movimientos, movimientosHabitacion;
   PImage preview;
-  PersonajeConfig(String nombre,String seleccion,String descanso,String movimientos) {
+  PersonajeConfig(String nombre,String seleccion,String descanso,String movimientos,String movimientosHabitacion) {
     this.nombre=nombre; this.seleccion=seleccion; this.descanso=descanso; this.movimientos=movimientos;
+    this.movimientosHabitacion=movimientosHabitacion;
   }
 }
 PersonajeConfig[] personajes;
 
 void prepararPersonajes() {
   personajes = new PersonajeConfig[] {
-    new PersonajeConfig("Chico","ChicoEstatico.png","ChicoNivel1Descanso.png","ChicoNivel1Movimientos.png"),
-    new PersonajeConfig("Chica","ChicaEstatica.png","ChicaNivel1Descanso.png","ChicaNivel1Movimientos.png"),
-    new PersonajeConfig("NoBin","NoBinEstatica.png","NoBinNivel1Descanso.png","NoBinNivel1Movimientos.png")
+    new PersonajeConfig("Chico","ChicoEstatico.png","ChicoNivel1Descanso.png","ChicoNivel1Movimientos.png",null),
+    new PersonajeConfig("Chica","ChicaEstatica.png",null,"ChicaNivel2Movimientos.png","ChicaNivel1Movimientos.png"),
+    new PersonajeConfig("NoBin","NoBinEstatica.png","NoBinNivel1Descanso.png",null,"NoBinNivel1Movimientos.png")
   };
   for (PersonajeConfig p : personajes) p.preview=cargarImagenPersonaje(p.seleccion,resolucionSprite(330),false);
 }
@@ -22,6 +23,7 @@ PImage cargarImagenPersonaje(String nombre,int maximo,boolean hoja) {
 }
 
 PImage cargarImagenPersonaje(String nombre,int maximo,int columnas,int filas) {
+  if (nombre==null) return null;
   java.io.File archivo=new java.io.File(dataPath(nombre));
   if (!archivo.isFile()) return null;
   javax.imageio.ImageReader lector=null;

@@ -1,6 +1,8 @@
 // Todas las pantallas conservan las coordenadas del diseño original.
 final int ANCHO_JUEGO = 1280;
 final int ALTO_JUEGO = 720;
+float temblorX, temblorY;
+float escalaTemblor = 1;
 
 float escalaJuego() {
   return min(width / float(ANCHO_JUEGO), height / float(ALTO_JUEGO));
@@ -16,11 +18,11 @@ float margenJuegoY() {
 
 // Se calculan al consultar: también funcionan entre fotogramas, en los clics.
 float mouseJuegoX() {
-  return (mouseX - margenJuegoX()) / escalaJuego();
+  return ((mouseX - margenJuegoX()) / escalaJuego() - temblorX) / escalaTemblor;
 }
 
 float mouseJuegoY() {
-  return (mouseY - margenJuegoY()) / escalaJuego();
+  return ((mouseY - margenJuegoY()) / escalaJuego() - temblorY) / escalaTemblor;
 }
 
 boolean mouseDentroDelJuego() {
@@ -34,6 +36,20 @@ void draw() {
   pushMatrix();
   translate(margenJuegoX(), margenJuegoY());
   scale(escalaJuego());
+  int ahora=millis();
+  if (pantalla==2) {
+    escenarios.actualizar(ahora);
+    cama.actualizarActividad(ahora);
+    celular.actualizarActividad(ahora);
+    if (!menuPausaAbierto) avisosPlazo.actualizar(ahora);
+  }
+  float intensidad=pantalla==2 && !cama.mostrandoEscena(ahora) ? hud.intensidadEstres() : 0;
+  escalaTemblor=1+0.004*intensidad;
+  temblorX=intensidad*(-ANCHO_JUEGO*0.002+sin(ahora*0.063)*1.35);
+  temblorY=intensidad*(-ALTO_JUEGO*0.002+sin(ahora*0.079+0.6)*0.9);
+  translate(temblorX,temblorY);
+  scale(escalaTemblor);
   dibujarJuego();
+  if (menuPausaAbierto) mostrarMenuPausa();
   popMatrix();
 }

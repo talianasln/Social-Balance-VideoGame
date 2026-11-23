@@ -7,16 +7,16 @@ class ConectarConceptos extends Minijuego {
     "Sedentarismo", "Descanso digital"
   };
   private final String[] definiciones = {
-    "Rastro de información que dejamos en internet.",
-    "Acoso realizado mediante medios digitales.",
-    "Control de nuestra información personal en internet.",
-    "Tiempo que pasamos utilizando dispositivos digitales.",
-    "Clave difícil de adivinar que protege nuestras cuentas.",
-    "Información falsa o engañosa que se difunde.",
-    "Uso saludable y equilibrado de la tecnología.",
-    "Proceso para comprobar la identidad de un usuario.",
-    "Hábito de permanecer mucho tiempo sin actividad física.",
-    "Pausa voluntaria del uso de dispositivos electrónicos."
+    "Tus publicaciones y búsquedas dejan registros que otros pueden asociar contigo.",
+    "Alguien usa un chat grupal para humillar repetidamente a un compañero.",
+    "Decides quién puede ver tus fotos y qué datos puede recoger una aplicación.",
+    "El informe semanal cuenta cuántas horas usaste el móvil y el computador.",
+    "Una frase larga y única dificulta que alguien adivine cómo entrar a tu cuenta.",
+    "Una publicación inventada circula como si fuera una noticia verificada.",
+    "Tus hábitos en línea te ayudan a cuidar el sueño, el ánimo y tus relaciones.",
+    "Para confirmar que eres tú, el servicio te pide un código de tu dispositivo.",
+    "Pasas gran parte del día sentado, incluso en ratos sin usar dispositivos.",
+    "Dejas el teléfono a un lado un rato y retomas su uso cuando termina la pausa."
   };
   private final java.util.Random azar;
   private final PilaConexiones historial = new PilaConexiones();
@@ -45,7 +45,9 @@ class ConectarConceptos extends Minijuego {
       idsConceptos[i] = banco[i];
       idsDefiniciones[i] = banco[i];
     }
-    barajar(idsDefiniciones);
+    do {
+      barajar(idsDefiniciones);
+    } while (cantidadAlineadas()>2);
     java.util.Arrays.fill(destinos, -1);
     java.util.Arrays.fill(definicionOcupada, false);
     historial.vaciar();
@@ -53,6 +55,14 @@ class ConectarConceptos extends Minijuego {
     terminado = false;
     victoria = false;
     activo = true;
+  }
+
+  private int cantidadAlineadas() {
+    int alineadas = 0;
+    for (int i=0; i<PAREJAS; i++) {
+      if (idsConceptos[i]==idsDefiniciones[i]) alineadas++;
+    }
+    return alineadas;
   }
 
   private void barajar(int[] valores) {
@@ -82,6 +92,8 @@ class ConectarConceptos extends Minijuego {
     seleccionado = -1;
     return true;
   }
+
+  void cancelarSeleccion() { seleccionado = -1; }
 
   boolean deshacer() {
     if (!activo || historial.estaVacia()) return false;

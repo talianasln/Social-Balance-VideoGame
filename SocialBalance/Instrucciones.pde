@@ -20,7 +20,7 @@ class Instrucciones {
     seccion("3. EN LA HABITACIÓN",75,335,550,225,
       "Escritorio: abrir carpetas y realizar tareas.\nCama: descansar y recuperar energía.\nCelular: usar redes para reducir el estrés.\nAcércate hasta que aparezca la indicación de E.");
     seccion("4. PLANIFICA TU TIEMPO",655,335,550,225,
-      "El día comienza a las 8:00 a. m.\nEl reloj se detiene durante los minijuegos.\nCada fallo o abandono consume " + penalizacionFalloMinutos + " minutos; abandonar pide confirmación.\nDescanso máximo: " + MAX_DESCANSO + " minutos al día.");
+      "El día comienza a las 8:00 a. m.\nEl reloj se detiene durante los minijuegos.\nCada fallo o abandono consume " + penalizacionFalloMinutos + " minutos; abandonar pide confirmación.\nDescanso base: " + MAX_DESCANSO + " minutos al día.");
 
     fill(65,39,45); textAlign(CENTER,CENTER); textSize(18);
     text("Consulta el costo y la hora límite de cada tarea antes de comenzar.",640,590);

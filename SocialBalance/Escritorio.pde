@@ -31,11 +31,11 @@ class Escritorio extends ObjetoInteractivo {
     zonaMinY = 475;
     zonaMaxY = 615;
     tareas = new Tarea[] {
-      new Tarea(2,"MEMORIA","Encuentra las seis parejas de cartas.\nPrimero tendrás unos segundos para memorizarlas.",90,25,18,12*60),
-      new Tarea(1,"CREAR CONTRASEÑA","Resuelve un reto de palabras y números.\nUsa una contraseña inventada; hay una pista disponible.",120,30,22,15*60+30),
-      new Tarea(4,"CONECTAR CONCEPTOS","Relaciona cinco conceptos con sus definiciones.\nPuedes deshacer conexiones antes de verificar.",60,18,12,17*60),
-      new Tarea(3,"VERDADERO / FALSO","Arrastra cada afirmación a Falso o Verdadero.\nGanas con cinco aciertos; tres errores terminan el intento.",75,20,14,18*60),
-      new Tarea(5,"ORDENAR PASOS","Arrastra las cinco tarjetas para ordenar los pasos.\nPulsa Verificar cuando termines.",90,25,18,20*60+30)
+      new Tarea(2,"MEMORIA","Encuentra las seis parejas de cartas.\nPrimero tendrás unos segundos para memorizarlas.",90,25,18,8,12*60),
+      new Tarea(1,"CREAR CONTRASEÑA","Resuelve un reto de palabras y números.\nUsa una contraseña inventada; hay una pista disponible.",120,30,22,12,15*60+30),
+      new Tarea(4,"CONECTAR CONCEPTOS","Arrastra un hilo desde cada concepto hasta su definición.\nPuedes deshacer conexiones antes de verificar.",60,18,12,8,17*60),
+      new Tarea(3,"VERDADERO / FALSO","Arrastra cada afirmación a Falso o Verdadero.\nGanas con cinco aciertos; tres errores terminan el intento.",75,20,14,7,18*60),
+      new Tarea(5,"ORDENAR PASOS","Arrastra las cinco tarjetas para ordenar los pasos.\nPulsa Verificar cuando termines.",90,25,18,10,20*60+30)
     };
   }
   boolean jugadorCerca(Jugador jugador) {
@@ -51,12 +51,16 @@ class Escritorio extends ObjetoInteractivo {
   boolean mouseSobreBoton(float x,float y,float ancho,float alto) {
     return mouseJuegoX()>=x && mouseJuegoX()<=x+ancho && mouseJuegoY()>=y && mouseJuegoY()<=y+alto;
   }
+  int cantidadCompletadas() {
+    int completadas=0;
+    for (Tarea tarea : tareas) if (tarea.completada) completadas++;
+    return completadas;
+  }
+
   void mostrarInterfaz() {
     pushStyle(); rectMode(CORNER); imageMode(CORNER);
     background(48,35,65);
-    if(fondoInterfazEscritorio!=null) image(fondoInterfazEscritorio,0,0,ANCHO_JUEGO,ALTO_JUEGO);
-    int completadas=0;
-    for(Tarea t:tareas) if(t.completada) completadas++;
+    dibujarFondoComputador(0,0,ANCHO_JUEGO,ALTO_JUEGO);
     for(int i=0;i<carpetas.length;i++) {
       float[] r=carpetas[i];
       float x=r[0]*ANCHO_JUEGO/1672.0, y=r[1]*ALTO_JUEGO/941.0;
@@ -73,7 +77,7 @@ class Escritorio extends ObjetoInteractivo {
     noStroke(); fill(35,25,45,225); rect(265,18,850,48,9);
     fill(255); textAlign(CENTER,CENTER); textSize(16);
     text("Hora: "+hud.obtenerHora()+"   |   Energía: "+hud.energia+"   |   Estrés: "+hud.estres+
-         "   |   Concentración: "+hud.concentracion+"   |   "+completadas+" / "+tareas.length+" tareas",690,42);
+         "   |   Concentración: "+hud.concentracion+"   |   "+cantidadCompletadas()+" / "+tareas.length+" tareas",690,42);
     dibujarBoton("X",1205,20,48,45,true);
     if(carpetaSeleccionada>=0) mostrarDetalleCarpeta();
     popStyle();
@@ -103,12 +107,14 @@ class Escritorio extends ObjetoInteractivo {
     fill(240,220,240); textAlign(LEFT,TOP); textSize(18);
     text(actual.descripcion,370,265,730,80);
     text("Duración: "+actual.duracion()+"   |   Terminar antes de: "+actual.horaLimite(),370,365);
-    text("Energía: −"+actual.energia+"   |   Estrés: +"+actual.estres,370,405);
+    text("Energía: −"+actual.energia+"   |   Estrés: +"+actual.estres+"   |   Concentración: −"+actual.concentracion,370,405);
     textSize(16); text("Fallar o abandonar consume "+penalizacionFalloMinutos+" minutos virtuales.",370,447);
     String motivo=actual.bloqueo();
     fill(255,210,180); textAlign(CENTER,CENTER); textSize(16);
     text(motivo.length()>0 ? motivo : "El reloj se detiene mientras resuelves el minijuego.",365,480,750,45);
-    dibujarBoton("COMENZAR ACTIVIDAD",470,545,540,48,motivo.length()==0);
+    boolean fueraDePlazo=!actual.bloqueoPorTiempo().isEmpty();
+    dibujarBoton(fueraDePlazo ? "REINICIAR EL DÍA…" : "COMENZAR ACTIVIDAD",470,545,540,48,
+      fueraDePlazo || motivo.isEmpty());
   }
   void dibujarBoton(String nombre,float x,float y,float ancho,float alto,boolean habilitado) {
     fill(!habilitado ? color(65,57,63) : mouseSobreBoton(x,y,ancho,alto) ? color(177,126,111) : color(133,91,83));
@@ -128,7 +134,9 @@ class Escritorio extends ObjetoInteractivo {
     if(mouseSobreBoton(470,545,540,48)) {
       int indice=tareaPorCarpeta[carpetaSeleccionada];
       if(indice<0 || tareas[indice].completada) { carpetaSeleccionada=-1; return; }
-      if(tareas[indice].bloqueo().length()==0) gestorMinijuegos.abrir(tareas[indice].id);
+      Tarea tarea=tareas[indice];
+      if(!tarea.bloqueoPorTiempo().isEmpty()) gestorMinijuegos.mostrarPlazoVencido(tarea);
+      else if(tarea.bloqueo().isEmpty()) gestorMinijuegos.abrir(tarea.id);
     }
   }
 }

@@ -1,10 +1,10 @@
 class OrdenarPasos extends Minijuego {
   static final int CANTIDAD_PASOS = 5;
-  static final String[] TITULOS = {
+  private final String[] TITULOS = {
     "Mensaje sospechoso", "Sesión de estudio", "Proteger una cuenta digital",
     "Hábitos de sueño", "Responder ante el ciberacoso"
   };
-  static final String[][] PASOS = {
+  private final String[][] PASOS = {
     {
       "Identificar señales sospechosas del mensaje.",
       "No abrir enlaces ni compartir información.",

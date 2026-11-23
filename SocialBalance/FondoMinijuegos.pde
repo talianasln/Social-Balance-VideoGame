@@ -1,9 +1,29 @@
 // Fondo compartido: se carga una sola vez y respeta las coordenadas del juego.
 void dibujarFondoMinijuego() {
-  pushStyle(); imageMode(CORNER); noTint();
-  if(fondoInterfazEscritorio!=null) image(fondoInterfazEscritorio,0,0,ANCHO_JUEGO,ALTO_JUEGO);
-  popStyle();
+  dibujarFondoComputador(0,0,ANCHO_JUEGO,ALTO_JUEGO);
   dibujarVentanaEmergente();
+}
+
+void dibujarFondoComputador(float x,float y,float ancho,float alto) {
+  if (fondoInterfazEscritorio==null) return;
+  pushStyle();
+  pushMatrix();
+  translate(x,y);
+  scale(ancho/1672.0,alto/941.0);
+  imageMode(CORNER);
+  rectMode(CORNER);
+  noTint();
+  image(fondoInterfazEscritorio,0,0,1672,941);
+  // Cubrir la hora impresa en la barra y mostrar la hora virtual.
+  noStroke();
+  fill(119,68,101);
+  rect(1534,882,124,46,8);
+  fill(255,238,225);
+  textAlign(CENTER,CENTER);
+  textSize(23);
+  text(hud.obtenerHora(),1596,905);
+  popMatrix();
+  popStyle();
 }
 
 void dibujarVentanaEmergente() {

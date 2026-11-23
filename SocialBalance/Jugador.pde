@@ -22,7 +22,7 @@ class Jugador {
 
   // ================= SPRITES =================
 
-  PImage hojaSprites;
+  PImage hojaSprites, hojaHabitacion;
   int framesDescanso = 1;
   int frameDescanso = 0;
   int ultimoFrameDescanso = 0;
@@ -52,24 +52,32 @@ class Jugador {
 
   void reiniciarPosicion() {
     // Conservar la posición inicial de los pies al cambiar el tamaño del dibujo.
-    x = 665 - anchoPersonaje / 2;
-    y = 517 - altoPersonaje * 0.96;
+    colocarPies(665,517);
     detenerMovimiento();
+  }
+
+  void colocarPies(float piesX,float piesY) {
+    x=piesX-anchoPersonaje/2;
+    y=piesY-altoPersonaje*0.96;
   }
 
   void cargarPersonaje(int indice) {
     detenerMovimiento(); direccion = ABAJO;
-    hojaSprites = null; imagenQuieto = null;
     PersonajeConfig config = personajes[indice-1];
     int ladoHoja=resolucionSprite(max(anchoPersonaje,altoPersonaje))*4;
     imagenQuieto = cargarImagenPersonaje(config.descanso,ladoHoja,4,1);
     framesDescanso = imagenQuieto!=null ? 4 : 1;
     hojaSprites = cargarImagenPersonaje(config.movimientos,ladoHoja,true);
+    hojaHabitacion = cargarImagenPersonaje(config.movimientosHabitacion,ladoHoja,true);
     // Mientras falta una animación, conservar la identidad del personaje.
     if (imagenQuieto==null && hojaSprites==null) imagenQuieto=config.preview;
     frameDescanso=0;
     ultimoFrameDescanso=millis();
     ultimoCambioFrame=millis();
+  }
+
+  PImage hojaActual() {
+    return escenarios.enHabitacion() && hojaHabitacion!=null ? hojaHabitacion : hojaSprites;
   }
 
   int filaSprite() {
@@ -95,7 +103,7 @@ class Jugador {
     caminando = x != anteriorX || y != anteriorY;
 
     // Descanso animado; también sirve provisionalmente si falta caminar.
-    if ((!caminando || hojaSprites==null) && framesDescanso>1 &&
+    if ((!caminando || hojaActual()==null) && framesDescanso>1 &&
         millis()-ultimoFrameDescanso>=velocidadDescanso) {
       frameDescanso=(frameDescanso+1)%framesDescanso;
       ultimoFrameDescanso=millis();
@@ -127,7 +135,8 @@ class Jugador {
   // ================= MOSTRAR =================
 
 void mostrar() {
-  if ((!caminando || hojaSprites==null) && imagenQuieto!=null) {
+  PImage hoja = hojaActual();
+  if ((hoja==null || (!caminando && hoja!=hojaHabitacion)) && imagenQuieto!=null) {
     if (framesDescanso>1) {
       int celda=imagenQuieto.width/framesDescanso;
       int sx=frameDescanso*celda;
@@ -135,12 +144,12 @@ void mostrar() {
     } else dibujarImagenAjustada(imagenQuieto,x,y,anchoPersonaje,altoPersonaje);
     return;
   }
-  if (hojaSprites!=null) {
-    int tamano=hojaSprites.width/4;
+  if (hoja!=null) {
+    int tamano=hoja.width/4;
     int sx=(caminando ? frameActual : 0)*tamano;
     int sy=filaSprite()*tamano;
     // Dibujar una celda evita duplicar en memoria las 16 imágenes.
-    dibujarSpriteNitido(hojaSprites,x,y,anchoPersonaje,altoPersonaje,sx,sy,sx+tamano,sy+tamano);
+    dibujarSpriteNitido(hoja,x,y,anchoPersonaje,altoPersonaje,sx,sy,sx+tamano,sy+tamano);
   } else {
     pushStyle(); fill(220,190,200); noStroke();
     ellipse(piesX(),piesY()-90,65,140);
@@ -154,6 +163,7 @@ void mostrar() {
   boolean posicionPermitida(float nuevaX, float nuevaY) {
     float px = nuevaX + anchoPersonaje / 2;
     float py = nuevaY + altoPersonaje * 0.96;
+    if (!escenarios.enHabitacion()) return escenarios.permitePies(px,py);
     if (px < limiteIzquierdo || px > limiteDerecho || py < 475 || py > 690) return false;
     // Huella de los pies, no el margen transparente del sprite.
     float bordeCama = personajeSeleccionado==2 ? 750 : 800;
@@ -184,12 +194,12 @@ void mostrar() {
 
 // ================= TECLADO =================
 void keyPressed() {
-  // Escape en un reto pide confirmar el abandono en vez de cerrar la aplicación.
-  if (key == ESC && pantalla == 2 && gestorMinijuegos.activo != 0) {
-    key = 0;
-    gestorMinijuegos.solicitarSalida();
+  if (key==ESC) {
+    key=0; // Evita que Processing cierre el sketch automáticamente.
+    abrirMenuPausa();
     return;
   }
+  if (menuPausaAbierto || (pantalla==2 && cama.actividadEnCurso)) return;
   if (pantalla == 2 && gestorMinijuegos.activo != 0) {
     gestorMinijuegos.teclear(key,keyCode);
     return;
@@ -200,6 +210,7 @@ void keyPressed() {
   }
   if (key == 'e' || key == 'E') {
     ObjetoInteractivo objeto = objetoCercano();
+    if (escenarios.usarPuerta() || encargoBiblioteca.buscarCerca()) return;
     if (objeto != null) objeto.abrirInterfaz();
     jugador.detenerMovimiento();
     return;

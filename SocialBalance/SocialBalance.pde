@@ -4,11 +4,15 @@ PImage fondoInicio;
 
 PImage fondoInterfazEscritorio;
 PImage fondoMinijuegos;
+PImage fondoCalendario;
+IntroduccionDomingo introduccionDomingo = new IntroduccionDomingo();
 PImage imagenTarjetaTarea;
 
 // Fondos de habitaciones
 PImage cuarto2;
 PImage cuarto1;
+Escenarios escenarios = new Escenarios();
+EncargoBiblioteca encargoBiblioteca = new EncargoBiblioteca();
 
 // Pantallas
 int pantalla = 0;
@@ -51,10 +55,12 @@ void setup() {
   fondoInicio = loadImage("PantallaDeInicio.png");
 
   prepararPersonajes();
+  cargarEscenasDormir();
 
   // Habitaciones
   cuarto2 = loadImage("Cuarto2.png");
   cuarto1 = loadImage("Cuarto1.png");
+  escenarios.cargar();
 
   // Crear jugador (carga el nuevo spritesheet)
   jugador = new Jugador();
@@ -76,6 +82,8 @@ void setup() {
 
   fondoInterfazEscritorio = loadImage("InterfazEscritorio.png");
   fondoMinijuegos = loadImage("VentanaEmergente.PNG");
+  fondoCalendario = loadImage("Calendario.png");
+  introduccionDomingo.cargar();
   imagenTarjetaTarea = loadImage("TarjetaTarea.png");
 
   // Imágenes de las cartas de Memoria
@@ -87,6 +95,7 @@ void setup() {
   imagenesMemoria[3] = loadImage("RespetoTM.png");
   imagenesMemoria[4] = loadImage("TiempoTM.png");
   imagenesMemoria[5] = loadImage("CelularTM.png");
+  presentacionInicial.iniciar();
 }
 
 
@@ -96,7 +105,7 @@ void dibujarJuego() {
 
   // MENÚ PRINCIPAL
   if (pantalla == 0) {
-    mostrarMenu();
+    if (!presentacionInicial.mostrar()) mostrarMenu();
   }
 
   // SELECCIÓN DE PERSONAJE
@@ -109,9 +118,20 @@ void dibujarJuego() {
 
     // ================= HABITACIÓN =================
 
-    // Cuarto1: Chica. Cuarto2: Chico y NoBin.
-    PImage cuartoActual = personajeSeleccionado == 2 ? cuarto1 : cuarto2;
-    if (cuartoActual != null) image(cuartoActual, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
+    int ahora=millis();
+    if (cama.mostrandoEscena(ahora)) {
+      cama.mostrarEscena(ahora);
+      if (!menuPausaAbierto) avisosPlazo.mostrar(ahora);
+      return;
+    }
+    hud.actualizarAvisosEstado();
+    float intensidad=hud.intensidadEstres();
+    PImage cuartoActual = escenarios.fondo();
+    boolean fondoDescanso=cama.interfazAbierta && cama.yaDurmio;
+    if (fondoDescanso) dibujarImagenDescanso(ahora);
+    else if (cuartoActual != null) image(cuartoActual, 0, 0, ANCHO_JUEGO, ALTO_JUEGO);
+
+    escenarios.dibujarEstanteCentral();
 
     // ================= JUGADOR =================
 
@@ -119,11 +139,13 @@ void dibujarJuego() {
 
     if (puedeMoverse) {
       jugador.actualizar();
+      escenarios.comprobarSalida();
     } else {
       jugador.detenerMovimiento();
     }
 
-    jugador.mostrar();
+    if (!fondoDescanso) jugador.mostrar();
+    encargoBiblioteca.mostrarMarcadores();
 
 
     // ================= ESCRITORIO =================
@@ -134,7 +156,7 @@ void dibujarJuego() {
 
     // ================= HUD =================
 
-    if (!escritorio.interfazAbierta) hud.mostrar();
+    if (!introduccionDomingo.abierta && !escritorio.interfazAbierta) hud.mostrar();
     cama.mostrar();
     celular.mostrar();
 
@@ -147,6 +169,24 @@ void dibujarJuego() {
     // ================= MINIJUEGO =================
 
     gestorMinijuegos.mostrar();
+    if (intensidad>0) {
+      pushStyle();
+      rectMode(CORNER);
+      noStroke();
+      fill(20,13,27,29*intensidad);
+      rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
+      popStyle();
+      dibujarBordesEstres(intensidad);
+    }
+    if (puedeConsultarCalendario() && !escenarios.cambiando()) {
+      if (!hud.calendario.abierto) hud.mostrarAvisosEstado();
+      hud.calendario.mostrar();
+    }
+    if (encargoBiblioteca.abierto || puedeMostrarEncargo()) encargoBiblioteca.mostrar();
+    if (!menuPausaAbierto) avisosPlazo.mostrar(ahora);
+    introduccionDomingo.mostrar();
+    cama.mostrarSalidaDelPanel(ahora);
+    escenarios.mostrarFundido(millis());
   }
 
   // mostrarCoordenadas();

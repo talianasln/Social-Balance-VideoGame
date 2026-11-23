@@ -37,7 +37,7 @@ class VistaConectarConceptos {
     fill(255,240,225); textAlign(LEFT,CENTER); textSize(26);
     text("SOCIAL BALANCE / CONECTAR CONCEPTOS",85,65);
     fill(65,39,45); textSize(18);
-    text("Elige un concepto y luego su definición. Puedes deshacer antes de verificar.",80,125);
+    text("Mantén pulsado un concepto y arrastra el hilo hasta su definición.",80,125);
     textSize(16); text("CONCEPTOS",80,158); text("DEFINICIONES",720,158);
     textAlign(CENTER,CENTER); text("Conexiones: "+juego.cantidadConexiones()+" / 5",555,158);
 
@@ -45,20 +45,37 @@ class VistaConectarConceptos {
     for(int i=0;i<juego.PAREJAS;i++) {
       int destino=juego.definicionConectada(i);
       if(destino<0) continue;
-      float y1=Y_INICIO+i*PASO+(recuadroConcepto!=null ? 30 : ALTO/2);
-      float y2=Y_INICIO+destino*PASO+(recuadroRespuesta!=null ? 39 : ALTO/2);
-      stroke(colores[i]); strokeWeight(4); line(405,y1,705,y2);
-      fill(colores[i]); noStroke(); ellipse(405,y1,12,12); ellipse(705,y2,12,12);
+      dibujarHilo(i,705,centroDefinicion(destino));
+    }
+    int origen=juego.conceptoSeleccionado();
+    int destino=origen>=0 ? definicionDisponibleEn(mouseJuegoX(),mouseJuegoY()) : -1;
+    if(origen>=0) {
+      float x=destino>=0 ? 705 : constrain(mouseJuegoX(),405,ANCHO_JUEGO);
+      float y=destino>=0 ? centroDefinicion(destino) : constrain(mouseJuegoY(),0,ALTO_JUEGO);
+      dibujarHilo(origen,x,y);
     }
     for(int i=0;i<juego.PAREJAS;i++) {
       tarjeta(recuadroConcepto,juego.textoConcepto(i),X_CONCEPTO,Y_INICIO+i*PASO,ANCHO_CONCEPTO,
         juego.conceptoSeleccionado()==i,juego.definicionConectada(i)>=0);
       tarjeta(recuadroRespuesta,juego.textoDefinicion(i),X_RESPUESTA,Y_INICIO+i*PASO,ANCHO_RESPUESTA,
-        false,juego.estaDefinicionOcupada(i));
+        destino==i,origen<0 || juego.estaDefinicionOcupada(i));
     }
     boton("DESHACER",350,juego.cantidadConexiones()>0);
     boton("VERIFICAR",680,juego.puedeVerificar());
     popStyle();
+  }
+
+  float centroDefinicion(int fila) {
+    return Y_INICIO+fila*PASO+(recuadroRespuesta!=null ? 39 : ALTO/2);
+  }
+
+  void dibujarHilo(int origen, float x, float y) {
+    float inicioY=Y_INICIO+origen*PASO+(recuadroConcepto!=null ? 30 : ALTO/2);
+    stroke(colores[origen]); strokeWeight(4);
+    line(405,inicioY,x,y);
+    fill(colores[origen]); noStroke();
+    ellipse(405,inicioY,12,12);
+    ellipse(x,y,12,12);
   }
 
   void tarjeta(PImage fondo,String texto,float x,float y,float w,boolean seleccionada,boolean ocupada) {
@@ -86,12 +103,26 @@ class VistaConectarConceptos {
 
   void presionar(float x,float y) {
     if(sobreCierreVentana(x,y)) { quiereSalir=true; return; }
-    if(juego.estaTerminado()) return;
+    if(juego.estaTerminado() || juego.conceptoSeleccionado()>=0) return;
     if(dentro(x,y,350,620,250,48)) { juego.deshacer(); return; }
     if(dentro(x,y,680,620,250,48)) { juego.verificar(); return; }
     for(int i=0;i<juego.PAREJAS;i++) {
       if(dentro(x,y,X_CONCEPTO,Y_INICIO+i*PASO,ANCHO_CONCEPTO,ALTO)) { juego.seleccionarConcepto(i); return; }
-      if(dentro(x,y,X_RESPUESTA,Y_INICIO+i*PASO,ANCHO_RESPUESTA,ALTO)) { juego.seleccionarDefinicion(i); return; }
     }
+  }
+
+  int definicionDisponibleEn(float x, float y) {
+    for(int i=0;i<juego.PAREJAS;i++) {
+      if(!juego.estaDefinicionOcupada(i) && dentro(x,y,X_RESPUESTA,Y_INICIO+i*PASO,ANCHO_RESPUESTA,ALTO))
+        return i;
+    }
+    return -1;
+  }
+
+  void soltar(float x, float y) {
+    if(juego.conceptoSeleccionado()<0) return;
+    int destino=definicionDisponibleEn(x,y);
+    if(destino>=0) juego.seleccionarDefinicion(destino);
+    juego.cancelarSeleccion();
   }
 }

@@ -1,14 +1,17 @@
 // Parámetros configurables compartidos por las actividades y los minijuegos.
 final int FIN_DIA = 21 * 60 + 30;
-final int MAX_DESCANSO = 90;
+final int MAX_DESCANSO = 105;
+final int MAX_ESTRES_PARA_TAREA = 60;
+final int MIN_CONCENTRACION_PARA_TAREA = 30;
 int penalizacionFalloMinutos = 15;
 
 boolean hayInterfazAbierta() {
-  return escritorio.interfazAbierta || cama.interfazAbierta || celular.interfazAbierta ||
-         instrucciones.abierta || gestorMinijuegos.activo != 0 || gestorMinijuegos.derrota.length()>0;
+  return menuPausaAbierto || escenarios.cambiando() || escritorio.interfazAbierta || cama.interfazAbierta || celular.interfazAbierta ||
+         instrucciones.abierta || introduccionDomingo.abierta || encargoBiblioteca.abierto || hud.calendario.abierto || gestorMinijuegos.activo != 0 || gestorMinijuegos.derrota.length()>0;
 }
 
 ObjetoInteractivo objetoCercano() {
+  if (!escenarios.enHabitacion()) return null;
   if (celular.jugadorCerca(jugador)) return celular;
   if (cama.jugadorCerca(jugador)) return cama;
   if (escritorio.jugadorCerca(jugador)) return escritorio;
@@ -18,7 +21,14 @@ ObjetoInteractivo objetoCercano() {
 void mostrarAyudaRecorrido() {
   ObjetoInteractivo objeto = objetoCercano();
   String mensaje = "Acércate a alguna zona para interactuar";
-  if (objeto == cama) mensaje = "E: descansar en la cama";
+  if (escenarios.cercaPuerta()) mensaje = escenarios.enHabitacion() ? "E: salir al pasillo" : "E: volver a la habitación";
+  else if (escenarios.actual==escenarios.PASILLO) mensaje = "Avanza por el pasillo para llegar a la biblioteca";
+  else if (escenarios.actual==escenarios.BIBLIOTECA) {
+    if (!encargoBiblioteca.disponible()) mensaje="Parece que no tengo nada que hacer aquí por ahora.";
+    else if (encargoBiblioteca.estanteCercano()>=0) mensaje="E: revisar estante (−10 de energía)";
+    else mensaje="Vuelve por el centro de la parte inferior para salir al pasillo";
+  }
+  else if (objeto == cama) mensaje = "E: descansar en la cama";
   else if (objeto == celular) mensaje = "E: usar el celular";
   else if (objeto == escritorio) mensaje = "E: actividades académicas";
   pushStyle();
@@ -35,6 +45,8 @@ abstract class PanelActividad extends ObjetoInteractivo {
   int duracion = 15;
   String titulo;
   String aviso = "";
+  int inicioActividad;
+  boolean actividadEnCurso;
 
   PanelActividad(String titulo, float minX, float maxX, float minY, float maxY) {
     super(minX, maxX);
@@ -53,8 +65,9 @@ abstract class PanelActividad extends ObjetoInteractivo {
   }
 
   boolean sobre(float x, float y, float w, float h) {
-    return mouseJuegoX() >= x && mouseJuegoX() <= x+w &&
-           mouseJuegoY() >= y && mouseJuegoY() <= y+h;
+    float escala=escalaPanel();
+    float px=640+(mouseJuegoX()-640)/escala, py=360+(mouseJuegoY()-360)/escala;
+    return px>=x && px<=x+w && py>=y && py<=y+h;
   }
 
   void dibujarBoton(String texto, float x, float y, float w, float h, boolean seleccionado, boolean habilitado) {
@@ -66,55 +79,158 @@ abstract class PanelActividad extends ObjetoInteractivo {
     text(texto,x+w/2,y+h/2);
   }
 
+  float escalaPanel() { return 1; }
+
+  void dibujarFondoPanel() { dibujarFondoComputador(20,15,1240,690); }
+
+  boolean progresoEnPanel() { return true; }
+
   void mostrar() {
     if (!interfazAbierta) return;
     pushStyle(); rectMode(CORNER); imageMode(CORNER);
-    noStroke(); fill(0,185); rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
-    if (fondoInterfazEscritorio != null) image(fondoInterfazEscritorio,20,15,1240,690);
+    noStroke(); fill(0,118); rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
+    dibujarFondoPanel();
+    pushMatrix();
+    translate(640,360);
+    scale(escalaPanel());
+    translate(-640,-360);
     fill(35,30,37,248); stroke(183,137,122); rect(145,110,990,510,12);
     fill(255,225,209); textAlign(LEFT,CENTER); textSize(30); text(titulo,180,150);
-    dibujarBoton("X",1060,125,45,45,false,true);
+    dibujarBoton("X",1060,125,45,45,false,!actividadEnCurso);
     fill(190,174,168); textAlign(LEFT,CENTER); textSize(17);
-    text("Elige la duración. El tiempo avanza al confirmar.",180,200);
-    dibujarBoton("15 MINUTOS",250,235,340,55,duracion==15,true);
-    dibujarBoton("30 MINUTOS",690,235,340,55,duracion==30,true);
+    text("Elige la duración. El tiempo del juego avanza al terminar la actividad.",180,200);
+    dibujarBoton("15 MINUTOS",250,235,340,55,duracion==15,!actividadEnCurso);
+    dibujarBoton("30 MINUTOS",690,235,340,55,duracion==30,!actividadEnCurso);
     fill(255,230,214); textAlign(CENTER,CENTER); textSize(21);
     text(detalle(),640,370);
     fill(190,174,168); textSize(16);
     text("Hora actual: " + hud.obtenerHora() + "   |   Tiempo disponible: " + hud.tiempoDisponible() + " min",640,460);
-    String motivo = bloqueo();
-    fill(motivo.length()>0 ? color(255,180,150) : color(170,225,185)); textSize(16);
-    text(motivo.length()>0 ? motivo : aviso,640,495);
-    dibujarBoton(accion(),420,535,440,55,false,motivo.length()==0);
+    if (actividadEnCurso && progresoEnPanel()) mostrarProgreso(millis());
+    else {
+      String motivo = bloqueo();
+      fill(motivo.length()>0 ? color(255,180,150) : color(170,225,185)); textSize(16);
+      text(motivo.length()>0 ? motivo : aviso,640,495);
+      dibujarBoton(accion(),420,535,440,55,false,!actividadEnCurso && motivo.length()==0);
+    }
+    popMatrix();
     popStyle();
   }
 
+  int duracionAnimacion() { return duracion*200; }
+
+  void actualizarActividad(int ahora) {
+    if (!actividadEnCurso || ahora-inicioActividad<duracionAnimacion()) return;
+    actividadEnCurso=false;
+    aviso=aplicar() ? "Actividad realizada. Pasaron "+duracion+" minutos." : bloqueo();
+  }
+
+  private void mostrarProgreso(int ahora) {
+    float progreso=constrain((ahora-inicioActividad)/float(duracionAnimacion()),0,1);
+    textAlign(CENTER,CENTER);
+    textSize(16);
+    fill(255,218,200);
+    text(this==cama ? "Descansando…" : "Tomándote un rato con el celular…",640,507);
+    stroke(218,173,157);
+    strokeWeight(2);
+    fill(73,54,71);
+    rect(420,534,440,37,12);
+    if (progreso>0) {
+      noStroke();
+      fill(165,101,127);
+      rect(425,539,430*progreso,27,8);
+    }
+    fill(255,237,224);
+    text(round(progreso*100)+" %",640,552);
+  }
+
   void procesarClick() {
+    if (actividadEnCurso) return;
     if (sobre(1060,125,45,45)) { cerrarInterfaz(); return; }
     if (sobre(250,235,340,55)) { duracion=15; aviso=""; return; }
     if (sobre(690,235,340,55)) { duracion=30; aviso=""; return; }
-    if (sobre(420,535,440,55) && bloqueo().length()==0 && aplicar()) {
-      aviso = "Acción realizada: avanzaron " + duracion + " minutos.";
-      gestorMinijuegos.comprobarViabilidad();
+    if (sobre(420,535,440,55) && bloqueo().isEmpty()) {
+      inicioActividad=millis();
+      actividadEnCurso=true;
+      aviso="";
     }
   }
 }
 
 class Cama extends PanelActividad {
+  final int MEDIO_FUNDIDO=170;
+  boolean yaDurmio;
+
   Cama() { super("DESCANSAR",700,1160,475,640); }
+
+  void cerrarInterfaz() {
+    super.cerrarInterfaz();
+    yaDurmio=false;
+  }
+
+  float escalaPanel() { return 0.88; }
+
+  void dibujarFondoPanel() {}
+
+  boolean progresoEnPanel() { return false; }
+
+  boolean mostrandoEscena(int ahora) {
+    return interfazAbierta && actividadEnCurso && ahora-inicioActividad>=MEDIO_FUNDIDO;
+  }
+
+  void mostrarEscena(int ahora) {
+    dibujarImagenDescanso(ahora);
+    float avance=constrain((ahora-inicioActividad-MEDIO_FUNDIDO)/float(duracionAnimacion()-MEDIO_FUNDIDO),0,1);
+    pushStyle();
+    rectMode(CORNER);
+    stroke(252,219,176);
+    strokeWeight(2);
+    fill(62,36,31,235);
+    rect(420,625,440,45,12);
+    noStroke();
+    int acento=personajeSeleccionado==2 ? color(213,128,128) :
+      personajeSeleccionado==3 ? color(215,139,86) : color(192,124,73);
+    fill(acento);
+    if (avance>0) rect(425,630,430*avance,35,8);
+    fill(255,237,211);
+    textAlign(CENTER,CENTER);
+    textSize(17);
+    text("Descansando · "+round(avance*100)+" %",640,648);
+    popStyle();
+    dibujarFundidoDescanso(1-(ahora-inicioActividad-MEDIO_FUNDIDO)/float(MEDIO_FUNDIDO));
+  }
+
+  void dibujarFundidoDescanso(float opacidad) {
+    if (opacidad<=0) return;
+    pushStyle();
+    rectMode(CORNER);
+    noStroke();
+    fill(0,255*constrain(opacidad,0,1));
+    rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
+    popStyle();
+  }
+
+  void mostrarSalidaDelPanel(int ahora) {
+    if (interfazAbierta && actividadEnCurso && !mostrandoEscena(ahora))
+      dibujarFundidoDescanso((ahora-inicioActividad)/float(MEDIO_FUNDIDO));
+  }
   String accion() { return "DESCANSAR " + duracion + " MINUTOS"; }
   String detalle() {
     int recuperacion = min(100-hud.energia,duracion==15 ? 10 : 20);
+    int foco = min(100-hud.concentracion,hud.recuperacionConcentracion(duracion));
     return "Energía: " + hud.energia + " → " + (hud.energia+recuperacion) + "   (+" + recuperacion + ")\n" +
-           "Descanso disponible: " + (MAX_DESCANSO-hud.descansoAcumulado) + " de 90 min\n" +
-           "Estrés y concentración sin cambios";
+           "Descanso disponible: " + (hud.limiteDescanso()-hud.descansoAcumulado) + " de " + hud.limiteDescanso() + " min\n" +
+           "Concentración: " + hud.concentracion + " → " + (hud.concentracion+foco) + "   (+" + foco + ")";
   }
   String bloqueo() {
-    if (hud.descansoAcumulado+duracion>MAX_DESCANSO) return "No quedan suficientes minutos de descanso.";
+    if (hud.descansoAcumulado+duracion>hud.limiteDescanso()) return "No quedan suficientes minutos de descanso.";
     if (!hud.puedeAvanzarTiempo(duracion)) return "No queda tiempo para este descanso antes de las 9:30 p. m.";
     return "";
   }
-  boolean aplicar() { return hud.descansar(duracion); }
+  boolean aplicar() {
+    boolean aplicado=hud.descansar(duracion);
+    if (aplicado) yaDurmio=true;
+    return aplicado;
+  }
 }
 
 class Celular extends PanelActividad {
@@ -122,12 +238,13 @@ class Celular extends PanelActividad {
   String accion() { return "USAR CELULAR " + duracion + " MINUTOS"; }
   String detalle() {
     int costo = duracion==15 ? 3 : 6;
-    return "Estrés: " + hud.estres + " → " + max(0,hud.estres-(duracion==15 ? 12 : 20)) + "\n" +
+    return "Estrés: " + hud.estres + " → " + max(0,hud.estres-hud.alivioCelular(duracion)) + "\n" +
            "Energía: " + hud.energia + " → " + max(0,hud.energia-costo) + "\n" +
            "Concentración: " + hud.concentracion + " → " + max(0,hud.concentracion-costo);
   }
   String bloqueo() {
-    return hud.puedeAvanzarTiempo(duracion) ? "" : "No queda tiempo para este uso antes de las 9:30 p. m.";
+    if (!hud.puedeAvanzarTiempo(duracion)) return "No queda tiempo para este uso antes de las 9:30 p. m.";
+    return hud.celularDisponible() ? "" : "Completa una actividad del computador antes de volver a usar el celular.";
   }
   boolean aplicar() { return hud.usarCelular(duracion); }
 }

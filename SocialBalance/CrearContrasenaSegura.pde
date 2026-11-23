@@ -52,19 +52,16 @@ class CrearContrasenaSegura {
 
   // Cada línea se dibuja por separado en la interfaz provisional.
   String obtenerRegla(int indice) {
-    if (variante == 0) {
-      if (indice == 0) return "Escribe 3 palabras distintas (mínimo 2 letras), juntas y sin espacios.";
-      if (indice == 1) return "Misma inicial y cantidad de vocales; cada palabra debe incluir una consonante.";
-      return "Entre ellas coloca 2 dígitos; el producto de cada pareja debe ser impar.";
+    if (indice == 0) return "Usa tres palabras distintas, sin espacios. Cada una debe tener al menos una vocal y una consonante.";
+    if (indice == 1) {
+      if (variante == 0) return "Las tres palabras deben empezar con la misma letra y tener la misma cantidad de vocales.";
+      if (variante == 1) return "La primera palabra debe tener 2 vocales, la segunda 3 y la tercera 4.";
+      return "La primera y la tercera palabra deben tener 3 vocales cada una; la segunda, 2. Las tres terminan con la misma letra.";
     }
-    if (variante == 1) {
-      if (indice == 0) return "Escribe 3 palabras distintas (mínimo 2 letras), juntas y sin espacios.";
-      if (indice == 1) return "Deben tener 2, 3 y 4 vocales, respectivamente, y alguna consonante.";
-      return "Entre ellas coloca 2 dígitos; la suma de cada pareja debe ser 9.";
-    }
-    if (indice == 0) return "Escribe 3 palabras distintas (mínimo 2 letras), juntas y sin espacios.";
-    if (indice == 1) return "Deben tener 3, 2 y 3 vocales, acabar igual e incluir consonantes.";
-    return "Entre ellas coloca 2 dígitos; el producto de cada pareja debe ser 12.";
+    if (indice == 2) return "Separa las palabras con parejas de dígitos, sin poner números al principio ni al final.";
+    if (variante == 0) return "Al multiplicar los dos dígitos de cada pareja, el resultado debe ser impar.";
+    if (variante == 1) return "Los dos dígitos de cada pareja deben sumar 9.";
+    return "Al multiplicar los dos dígitos de cada pareja, el resultado debe ser 12.";
   }
 
   // El jugador puede reintentar hasta acertar; tras aprobar, no se repite.
