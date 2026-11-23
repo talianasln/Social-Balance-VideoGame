@@ -7,9 +7,7 @@ class VerdaderoFalso {
   static final int EXPLICACION = 2;
   static final int VICTORIA = 3;
   static final int DERROTA_ERRORES = 4;
-  static final int DERROTA_TIEMPO = 5;
 
-  static final long LIMITE_MS = 90000L;
   static final long EXPLICACION_MS = 2600L;
   static final int META_ACIERTOS = 5;
   static final int MAX_ERRORES = 3;
@@ -43,7 +41,6 @@ class VerdaderoFalso {
   int ronda = 0;
   boolean ultimaCorrecta = false;
   long inicioReloj = -1;
-  long inicioExplicacion = -1;
 
   VerdaderoFalso() { this(new java.util.Random()); }
   VerdaderoFalso(java.util.Random azar) {
@@ -69,7 +66,6 @@ class VerdaderoFalso {
     ronda++;
     estado = INTRO;
     posicion = aciertos = errores = 0;
-    inicioReloj = inicioExplicacion = -1;
     ultimaCorrecta = false;
   }
 
@@ -80,18 +76,13 @@ class VerdaderoFalso {
     return true;
   }
 
-  void actualizar(long ahora) {
-    if (estado != JUGANDO && estado != EXPLICACION) return;
-  }
-
   void siguiente() {
     if (estado != EXPLICACION) return;
     posicion++;
     if (posicion < afirmaciones.length) estado = JUGANDO;
   }
 
-  boolean responder(boolean elegidoVerdadero, long ahora) {
-    actualizar(ahora);
+  boolean responder(boolean elegidoVerdadero) {
     // Antidoble clic: solo se puede responder una vez por afirmacion.
     if (estado != JUGANDO || posicion >= afirmaciones.length) return false;
     ultimaCorrecta = (elegidoVerdadero == respuestas[orden[posicion]]);
@@ -101,21 +92,13 @@ class VerdaderoFalso {
     else if (errores >= MAX_ERRORES) estado = DERROTA_ERRORES;
     else {
       estado = EXPLICACION;
-      inicioExplicacion = ahora;
     }
     return true;
   }
 
-  int segundosRestantes(long ahora) {
-    if (estado == INTRO) return 90;
-    if (estado == DERROTA_TIEMPO) return 0;
-    long restante = Math.max(0L, LIMITE_MS - (ahora - inicioReloj));
-    return (int)((restante + 999L) / 1000L);
-  }
-
   boolean completado() { return estado == VICTORIA; }
   boolean terminado() {
-    return estado == VICTORIA || estado == DERROTA_ERRORES || estado == DERROTA_TIEMPO;
+    return estado == VICTORIA || estado == DERROTA_ERRORES;
   }
   String afirmacionActual() { return afirmaciones[orden[posicion]]; }
   String explicacionActual() { return explicaciones[orden[posicion]]; }

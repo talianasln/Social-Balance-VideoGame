@@ -1,12 +1,11 @@
-boolean modoDebug = false;
 PFont fuenteJuego;
 PImage fondoInicio;
 
 PImage fondoInterfazEscritorio;
 PImage fondoMinijuegos;
+PImage imagenInterfazCelular, imagenInterfazDescanso;
 PImage fondoCalendario;
 IntroduccionDomingo introduccionDomingo = new IntroduccionDomingo();
-PImage imagenTarjetaTarea;
 
 // Fondos de habitaciones
 PImage cuarto2;
@@ -70,11 +69,14 @@ void setup() {
 
   // HUD
   hud = new HUD();
+  imagenInterfazCelular = cargarImagenPanelActividad("InterfazCelular.png");
+  imagenInterfazDescanso = cargarImagenPanelActividad("InterfazDescanso.png");
   cama = new Cama();
   celular = new Celular();
 
   // Instrucciones
   // Las instrucciones ahora se dibujan como texto sobre VentanaEmergente.
+  imagenInstrucciones = loadImage("InterfazGuia.png");
   instrucciones = new Instrucciones(imagenInstrucciones);
 
   // Minijuego
@@ -84,7 +86,6 @@ void setup() {
   fondoMinijuegos = loadImage("VentanaEmergente.PNG");
   fondoCalendario = loadImage("Calendario.png");
   introduccionDomingo.cargar();
-  imagenTarjetaTarea = loadImage("TarjetaTarea.png");
 
   // Imágenes de las cartas de Memoria
   reversoMemoria = loadImage("ReversoTM.png");
@@ -96,6 +97,10 @@ void setup() {
   imagenesMemoria[4] = loadImage("TiempoTM.png");
   imagenesMemoria[5] = loadImage("CelularTM.png");
   presentacionInicial.iniciar();
+}
+
+PImage cargarImagenPanelActividad(String archivo) {
+  return new java.io.File(dataPath(archivo)).isFile() ? loadImage(archivo) : null;
 }
 
 
@@ -188,84 +193,4 @@ void dibujarJuego() {
     cama.mostrarSalidaDelPanel(ahora);
     escenarios.mostrarFundido(millis());
   }
-
-  // mostrarCoordenadas();
-
-  if (modoDebug) {
-    mostrarCuadricula();
-  }
 }
-
-
-
-void mostrarCuadricula() {
-
-  pushStyle();
-
-  // Cuadrícula cada 20 píxeles
-  strokeWeight(1);
-
-  for (int x = 0; x <= ANCHO_JUEGO; x += 20) {
-
-    if (x % 100 == 0) {
-      stroke(255, 120);
-    } else {
-      stroke(255, 35);
-    }
-
-    line(x, 0, x, ALTO_JUEGO);
-  }
-
-  for (int y = 0; y <= ALTO_JUEGO; y += 20) {
-
-    if (y % 100 == 0) {
-      stroke(255, 120);
-    } else {
-      stroke(255, 35);
-    }
-
-    line(0, y, ANCHO_JUEGO, y);
-  }
-
-  // Coordenadas del mouse
-  noStroke();
-  fill(15, 15, 20, 230);
-  rect(10, ALTO_JUEGO - 45, 225, 35, 5);
-
-  fill(255);
-  textAlign(LEFT, CENTER);
-  textSize(15);
-
-  text(
-    "X: " + mouseJuegoX() + "  Y: " + mouseJuegoY(),
-    20,
-    ALTO_JUEGO - 28
-    );
-
-  // Cruz de posición del mouse
-  stroke(255, 200, 100);
-  strokeWeight(1);
-
-  line(mouseJuegoX() - 10, mouseJuegoY(),
-    mouseJuegoX() + 10, mouseJuegoY());
-
-  line(mouseJuegoX(), mouseJuegoY() - 10,
-    mouseJuegoX(), mouseJuegoY() + 10);
-
-  popStyle();
-}
-
-
-// ================= COORDENADAS =================
-
-// void mostrarCoordenadas() {
-//
-//   fill(0, 180);
-//   noStroke();
-//   rect(10, 10, 170, 45);
-//
-//   fill(255);
-//   textAlign(LEFT, CENTER);
-//   textSize(18);
-//   text("X: " + mouseJuegoX() + " Y: " + mouseJuegoY(), 20, 32);
-// }

@@ -34,6 +34,18 @@ class EncargoBiblioteca {
 
   int descansoAdicional() { return sorteado ? DESCANSO_ADICIONAL : 0; }
 
+  boolean estaSorteado() { return sorteado; }
+
+  void restaurar(boolean sorteado,int[] librosGuardados,boolean[] revisiones) {
+    this.sorteado=sorteado;
+    java.util.Arrays.fill(encontrados,false);
+    for (int i=0; i<libroPorEstante.length; i++) {
+      libroPorEstante[i]=librosGuardados[i];
+      revisados[i]=revisiones[i];
+      if (revisados[i] && libroPorEstante[i]>=0) encontrados[libroPorEstante[i]]=true;
+    }
+  }
+
   int estanteCercano() {
     if (!disponible() || completo() || escenarios.actual!=escenarios.BIBLIOTECA) return -1;
     for (int i=0; i<estantes.length; i++) {
@@ -71,6 +83,7 @@ class EncargoBiblioteca {
         resultado="Encontraste «"+libros[libro]+"».";
       }
       if (completo()) resultado+=" Ya tienes los tres libros.";
+      guardado.guardar();
     }
     abierto=true;
     jugador.detenerMovimiento();

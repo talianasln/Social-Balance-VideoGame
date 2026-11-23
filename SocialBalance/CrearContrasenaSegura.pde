@@ -5,7 +5,12 @@
 // IMPORTANTE: son retos de lógica; NO equivalen a seguridad real de contraseñas.
 class CrearContrasenaSegura {
 
-  private int variante;         // 0, 1 o 2; se elige una vez por partida
+  private final EstrategiaContrasena[] estrategias = {
+    new EstrategiaVocalesIguales(),
+    new EstrategiaVocalesEscalera(),
+    new EstrategiaPatronInverso()
+  };
+  private EstrategiaContrasena estrategia;
   private boolean completado;
   private int intentos;
   private String mensaje;
@@ -16,52 +21,30 @@ class CrearContrasenaSegura {
   }
 
   // Llamar UNA SOLA VEZ cuando el jugador pulse NUEVA PARTIDA.
-  // Si se carga una partida guardada, usar restaurarEstado en su lugar.
   void iniciarNuevaPartida(int nuevaVariante) {
-    if (nuevaVariante < 0 || nuevaVariante > 2) {
+    if (nuevaVariante < 0 || nuevaVariante >= estrategias.length) {
       nuevaVariante = 0;
     }
-    variante = nuevaVariante;
+    estrategia = estrategias[nuevaVariante];
     completado = false;
     intentos = 0;
     mensaje = "Escribe una contraseña ficticia que siga las reglas.";
     exitoUltimoIntento = false;
   }
 
-  // En una futura carga desde archivo hay que restaurar el mismo reto.
-  void restaurarEstado(int varianteGuardada, boolean estabaCompletado) {
-    iniciarNuevaPartida(varianteGuardada);
-    completado = estabaCompletado;
-    if (completado) {
-      mensaje = "Desafío completado en esta partida.";
-      exitoUltimoIntento = true;
-    }
-  }
-
-  int obtenerVariante() { return variante; }
   boolean estaCompletado() { return completado; }
   int obtenerIntentos() { return intentos; }
   String obtenerMensaje() { return mensaje; }
   boolean ultimoIntentoFueCorrecto() { return exitoUltimoIntento; }
 
-  String obtenerNombreReto() {
-    if (variante == 0) return "RETO 1 - VOCALES IGUALES";
-    if (variante == 1) return "RETO 2 - VOCALES EN ESCALERA";
-    return "RETO 3 - PATRON INVERSO";
-  }
+  String obtenerNombreReto() { return estrategia.nombreReto(); }
 
   // Cada línea se dibuja por separado en la interfaz provisional.
   String obtenerRegla(int indice) {
     if (indice == 0) return "Usa tres palabras distintas, sin espacios. Cada una debe tener al menos una vocal y una consonante.";
-    if (indice == 1) {
-      if (variante == 0) return "Las tres palabras deben empezar con la misma letra y tener la misma cantidad de vocales.";
-      if (variante == 1) return "La primera palabra debe tener 2 vocales, la segunda 3 y la tercera 4.";
-      return "La primera y la tercera palabra deben tener 3 vocales cada una; la segunda, 2. Las tres terminan con la misma letra.";
-    }
+    if (indice == 1) return estrategia.reglaPalabras();
     if (indice == 2) return "Separa las palabras con parejas de dígitos, sin poner números al principio ni al final.";
-    if (variante == 0) return "Al multiplicar los dos dígitos de cada pareja, el resultado debe ser impar.";
-    if (variante == 1) return "Los dos dígitos de cada pareja deben sumar 9.";
-    return "Al multiplicar los dos dígitos de cada pareja, el resultado debe ser 12.";
+    return estrategia.reglaDigitos();
   }
 
   // El jugador puede reintentar hasta acertar; tras aprobar, no se repite.
@@ -97,8 +80,8 @@ class CrearContrasenaSegura {
     if (entrada.length() < 10 || entrada.length() > 60) return false;
 
     String[] palabras = new String[3];
-    int[] a = new int[2];
-    int[] b = new int[2];
+    int[] primerosDigitos = new int[2];
+    int[] segundosDigitos = new int[2];
     int pos = 0;
 
     for (int i = 0; i < 3; i++) {
@@ -115,8 +98,8 @@ class CrearContrasenaSegura {
         char c1 = entrada.charAt(pos);
         char c2 = entrada.charAt(pos + 1);
         if (!esDigito(c1) || !esDigito(c2)) return false;
-        a[i] = c1 - '0';
-        b[i] = c2 - '0';
+        primerosDigitos[i] = c1 - '0';
+        segundosDigitos[i] = c2 - '0';
         pos += 2;
       }
     }
@@ -132,23 +115,8 @@ class CrearContrasenaSegura {
         palabras[0].equalsIgnoreCase(palabras[2]) ||
         palabras[1].equalsIgnoreCase(palabras[2])) return false;
 
-    int v0 = contarVocales(palabras[0]);
-    int v1 = contarVocales(palabras[1]);
-    int v2 = contarVocales(palabras[2]);
-
-    if (variante == 0) {
-      return empiezanIgual(palabras) &&
-             v0 == v1 && v1 == v2 && v0 > 0 &&
-             (a[0] * b[0]) % 2 == 1 &&
-             (a[1] * b[1]) % 2 == 1;
-    }
-    if (variante == 1) {
-      return v0 == 2 && v1 == 3 && v2 == 4 &&
-             a[0] + b[0] == 9 && a[1] + b[1] == 9;
-    }
-    return terminanIgual(palabras) &&
-           v0 == 3 && v1 == 2 && v2 == 3 &&
-           a[0] * b[0] == 12 && a[1] * b[1] == 12;
+    int[] vocales = {contarVocales(palabras[0]), contarVocales(palabras[1]), contarVocales(palabras[2])};
+    return estrategia.validar(palabras, vocales, primerosDigitos, segundosDigitos);
   }
 
   // Esto NO comprueba si una palabra existe en el diccionario.
@@ -189,17 +157,5 @@ class CrearContrasenaSegura {
       if (esVocal(palabra.charAt(i))) total++;
     }
     return total;
-  }
-
-  private boolean empiezanIgual(String[] palabras) {
-    char primera = Character.toLowerCase(palabras[0].charAt(0));
-    return Character.toLowerCase(palabras[1].charAt(0)) == primera &&
-           Character.toLowerCase(palabras[2].charAt(0)) == primera;
-  }
-
-  private boolean terminanIgual(String[] palabras) {
-    char ultima = Character.toLowerCase(palabras[0].charAt(palabras[0].length() - 1));
-    return Character.toLowerCase(palabras[1].charAt(palabras[1].length() - 1)) == ultima &&
-           Character.toLowerCase(palabras[2].charAt(palabras[2].length() - 1)) == ultima;
   }
 }

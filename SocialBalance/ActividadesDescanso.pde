@@ -81,6 +81,13 @@ abstract class PanelActividad extends ObjetoInteractivo {
 
   float escalaPanel() { return 1; }
 
+  PImage imagenPanel() { return null; }
+
+  float xCierre() { return imagenPanel()!=null ? 1210 : 1060; }
+  float yCierre() { return imagenPanel()!=null ? 24 : 125; }
+  float yDuracion() { return imagenPanel()!=null ? 225 : 235; }
+  float yAccion() { return imagenPanel()!=null ? 590 : 535; }
+
   void dibujarFondoPanel() { dibujarFondoComputador(20,15,1240,690); }
 
   boolean progresoEnPanel() { return true; }
@@ -89,31 +96,45 @@ abstract class PanelActividad extends ObjetoInteractivo {
     if (!interfazAbierta) return;
     pushStyle(); rectMode(CORNER); imageMode(CORNER);
     noStroke(); fill(0,118); rect(0,0,ANCHO_JUEGO,ALTO_JUEGO);
-    dibujarFondoPanel();
+    PImage imagen=imagenPanel();
+    if (imagen==null) dibujarFondoPanel();
     pushMatrix();
     translate(640,360);
     scale(escalaPanel());
     translate(-640,-360);
-    fill(35,30,37,248); stroke(183,137,122); rect(145,110,990,510,12);
-    fill(255,225,209); textAlign(LEFT,CENTER); textSize(30); text(titulo,180,150);
-    dibujarBoton("X",1060,125,45,45,false,!actividadEnCurso);
-    fill(190,174,168); textAlign(LEFT,CENTER); textSize(17);
-    text("Elige la duración. El tiempo del juego avanza al terminar la actividad.",180,200);
-    dibujarBoton("15 MINUTOS",250,235,340,55,duracion==15,!actividadEnCurso);
-    dibujarBoton("30 MINUTOS",690,235,340,55,duracion==30,!actividadEnCurso);
-    fill(255,230,214); textAlign(CENTER,CENTER); textSize(21);
-    text(detalle(),640,370);
-    fill(190,174,168); textSize(16);
-    text("Hora actual: " + hud.obtenerHora() + "   |   Tiempo disponible: " + hud.tiempoDisponible() + " min",640,460);
+    if (imagen!=null) {
+      noTint();
+      dibujarImagenAjustada(imagen,0,0,ANCHO_JUEGO,ALTO_JUEGO);
+    } else {
+      fill(35,30,37,248); stroke(183,137,122); rect(145,110,990,510,12);
+      fill(255,225,209); textAlign(LEFT,CENTER); textSize(30); text(titulo,180,150);
+      fill(190,174,168); textSize(17);
+      text("Elige la duración. El tiempo del juego avanza al terminar la actividad.",180,200);
+    }
+    dibujarBoton("X",xCierre(),yCierre(),45,45,false,!actividadEnCurso);
+    dibujarBoton("15 MINUTOS",250,yDuracion(),340,55,duracion==15,!actividadEnCurso);
+    dibujarBoton("30 MINUTOS",690,yDuracion(),340,55,duracion==30,!actividadEnCurso);
+    mostrarDetalle(imagen!=null);
+    fill(imagen!=null ? color(69,39,36) : color(190,174,168));
+    textAlign(CENTER,CENTER); textSize(16);
+    text("Hora actual: " + hud.obtenerHora() + "   |   Tiempo disponible: " + hud.tiempoDisponible() + " min",640,imagen!=null ? 520 : 460);
     if (actividadEnCurso && progresoEnPanel()) mostrarProgreso(millis());
     else {
       String motivo = bloqueo();
-      fill(motivo.length()>0 ? color(255,180,150) : color(170,225,185)); textSize(16);
-      text(motivo.length()>0 ? motivo : aviso,640,495);
-      dibujarBoton(accion(),420,535,440,55,false,!actividadEnCurso && motivo.length()==0);
+      if (imagen!=null) fill(motivo.length()>0 ? color(133,36,53) : color(38,91,55));
+      else fill(motivo.length()>0 ? color(255,180,150) : color(170,225,185));
+      textSize(16);
+      text(motivo.length()>0 ? motivo : aviso,640,imagen!=null ? 555 : 495);
+      dibujarBoton(accion(),420,yAccion(),440,55,false,!actividadEnCurso && motivo.length()==0);
     }
     popMatrix();
     popStyle();
+  }
+
+  void mostrarDetalle(boolean ilustrado) {
+    fill(ilustrado ? color(69,39,36) : color(255,230,214));
+    textAlign(CENTER,CENTER); textSize(21);
+    text(detalle(),640,ilustrado ? 412 : 370);
   }
 
   int duracionAnimacion() { return duracion*200; }
@@ -121,34 +142,37 @@ abstract class PanelActividad extends ObjetoInteractivo {
   void actualizarActividad(int ahora) {
     if (!actividadEnCurso || ahora-inicioActividad<duracionAnimacion()) return;
     actividadEnCurso=false;
-    aviso=aplicar() ? "Actividad realizada. Pasaron "+duracion+" minutos." : bloqueo();
+    boolean realizada=aplicar();
+    aviso=realizada ? "Actividad realizada. Pasaron "+duracion+" minutos." : bloqueo();
+    if (realizada) guardado.guardar();
   }
 
   private void mostrarProgreso(int ahora) {
     float progreso=constrain((ahora-inicioActividad)/float(duracionAnimacion()),0,1);
     textAlign(CENTER,CENTER);
     textSize(16);
-    fill(255,218,200);
-    text(this==cama ? "Descansando…" : "Tomándote un rato con el celular…",640,507);
+    float y=yAccion();
+    fill(imagenPanel()!=null ? color(69,39,36) : color(255,218,200));
+    text(this==cama ? "Descansando…" : "Tomándote un rato con el celular…",640,y-28);
     stroke(218,173,157);
     strokeWeight(2);
     fill(73,54,71);
-    rect(420,534,440,37,12);
+    rect(420,y-1,440,37,12);
     if (progreso>0) {
       noStroke();
       fill(165,101,127);
-      rect(425,539,430*progreso,27,8);
+      rect(425,y+4,430*progreso,27,8);
     }
     fill(255,237,224);
-    text(round(progreso*100)+" %",640,552);
+    text(round(progreso*100)+" %",640,y+17);
   }
 
   void procesarClick() {
     if (actividadEnCurso) return;
-    if (sobre(1060,125,45,45)) { cerrarInterfaz(); return; }
-    if (sobre(250,235,340,55)) { duracion=15; aviso=""; return; }
-    if (sobre(690,235,340,55)) { duracion=30; aviso=""; return; }
-    if (sobre(420,535,440,55) && bloqueo().isEmpty()) {
+    if (sobre(xCierre(),yCierre(),45,45)) { cerrarInterfaz(); return; }
+    if (sobre(250,yDuracion(),340,55)) { duracion=15; aviso=""; return; }
+    if (sobre(690,yDuracion(),340,55)) { duracion=30; aviso=""; return; }
+    if (sobre(420,yAccion(),440,55) && bloqueo().isEmpty()) {
       inicioActividad=millis();
       actividadEnCurso=true;
       aviso="";
@@ -168,6 +192,15 @@ class Cama extends PanelActividad {
   }
 
   float escalaPanel() { return 0.88; }
+
+  PImage imagenPanel() { return imagenInterfazDescanso; }
+
+  void mostrarDetalle(boolean ilustrado) {
+    if (!ilustrado) { super.mostrarDetalle(false); return; }
+    fill(69,39,36); textAlign(LEFT,CENTER); textSize(22);
+    String[] filas=split(detalle(),'\n');
+    for (int i=0; i<filas.length; i++) text(filas[i],580,355+i*57);
+  }
 
   void dibujarFondoPanel() {}
 
@@ -235,6 +268,15 @@ class Cama extends PanelActividad {
 
 class Celular extends PanelActividad {
   Celular() { super("CELULAR · REDES SOCIALES",1120,1260,610,690); }
+  PImage imagenPanel() { return imagenInterfazCelular; }
+
+  void mostrarDetalle(boolean ilustrado) {
+    if (!ilustrado) { super.mostrarDetalle(false); return; }
+    fill(69,39,36); textAlign(LEFT,CENTER); textSize(22);
+    String[] filas=split(detalle(),'\n');
+    for (int i=0; i<filas.length; i++) text(filas[i],585,356+i*55);
+  }
+
   String accion() { return "USAR CELULAR " + duracion + " MINUTOS"; }
   String detalle() {
     int costo = duracion==15 ? 3 : 6;

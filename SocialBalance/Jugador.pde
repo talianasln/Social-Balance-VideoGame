@@ -22,12 +22,11 @@ class Jugador {
 
   // ================= SPRITES =================
 
-  PImage hojaSprites, hojaHabitacion;
-  int framesDescanso = 1;
+  PImage movimientoHabitacion, movimientoExterior;
+  PImage descansoHabitacion, descansoExterior, imagenSeleccion;
   int frameDescanso = 0;
   int ultimoFrameDescanso = 0;
   int velocidadDescanso = 250;
-  PImage imagenQuieto;
 
   final int ABAJO = 0;
   final int IZQUIERDA = 1;
@@ -65,19 +64,23 @@ class Jugador {
     detenerMovimiento(); direccion = ABAJO;
     PersonajeConfig config = personajes[indice-1];
     int ladoHoja=resolucionSprite(max(anchoPersonaje,altoPersonaje))*4;
-    imagenQuieto = cargarImagenPersonaje(config.descanso,ladoHoja,4,1);
-    framesDescanso = imagenQuieto!=null ? 4 : 1;
-    hojaSprites = cargarImagenPersonaje(config.movimientos,ladoHoja,true);
-    hojaHabitacion = cargarImagenPersonaje(config.movimientosHabitacion,ladoHoja,true);
-    // Mientras falta una animación, conservar la identidad del personaje.
-    if (imagenQuieto==null && hojaSprites==null) imagenQuieto=config.preview;
+    descansoHabitacion = cargarImagenPersonaje(config.descansoHabitacion,ladoHoja,4,1);
+    descansoExterior = cargarImagenPersonaje(config.descansoExterior,ladoHoja,4,1);
+    movimientoHabitacion = cargarImagenPersonaje(config.movimientosHabitacion,ladoHoja,true);
+    movimientoExterior = cargarImagenPersonaje(config.movimientosExterior,ladoHoja,true);
+    imagenSeleccion = config.preview;
     frameDescanso=0;
     ultimoFrameDescanso=millis();
     ultimoCambioFrame=millis();
   }
 
   PImage hojaActual() {
-    return escenarios.enHabitacion() && hojaHabitacion!=null ? hojaHabitacion : hojaSprites;
+    if (escenarios.enHabitacion()) return movimientoHabitacion!=null ? movimientoHabitacion : movimientoExterior;
+    return movimientoExterior!=null ? movimientoExterior : movimientoHabitacion;
+  }
+
+  PImage descansoActual() {
+    return escenarios.enHabitacion() ? descansoHabitacion : descansoExterior;
   }
 
   int filaSprite() {
@@ -103,9 +106,9 @@ class Jugador {
     caminando = x != anteriorX || y != anteriorY;
 
     // Descanso animado; también sirve provisionalmente si falta caminar.
-    if ((!caminando || hojaActual()==null) && framesDescanso>1 &&
+    if ((!caminando || hojaActual()==null) && descansoActual()!=null &&
         millis()-ultimoFrameDescanso>=velocidadDescanso) {
-      frameDescanso=(frameDescanso+1)%framesDescanso;
+      frameDescanso=(frameDescanso+1)%4;
       ultimoFrameDescanso=millis();
     }
 
@@ -136,12 +139,11 @@ class Jugador {
 
 void mostrar() {
   PImage hoja = hojaActual();
-  if ((hoja==null || (!caminando && hoja!=hojaHabitacion)) && imagenQuieto!=null) {
-    if (framesDescanso>1) {
-      int celda=imagenQuieto.width/framesDescanso;
-      int sx=frameDescanso*celda;
-      dibujarSpriteNitido(imagenQuieto,x,y,anchoPersonaje,altoPersonaje,sx,0,sx+celda,imagenQuieto.height);
-    } else dibujarImagenAjustada(imagenQuieto,x,y,anchoPersonaje,altoPersonaje);
+  PImage descanso = descansoActual();
+  if ((!caminando || hoja==null) && descanso!=null) {
+    int celda=descanso.width/4;
+    int sx=frameDescanso*celda;
+    dibujarSpriteNitido(descanso,x,y,anchoPersonaje,altoPersonaje,sx,0,sx+celda,descanso.height);
     return;
   }
   if (hoja!=null) {
@@ -150,6 +152,8 @@ void mostrar() {
     int sy=filaSprite()*tamano;
     // Dibujar una celda evita duplicar en memoria las 16 imágenes.
     dibujarSpriteNitido(hoja,x,y,anchoPersonaje,altoPersonaje,sx,sy,sx+tamano,sy+tamano);
+  } else if (imagenSeleccion!=null) {
+    dibujarImagenAjustada(imagenSeleccion,x,y,anchoPersonaje,altoPersonaje);
   } else {
     pushStyle(); fill(220,190,200); noStroke();
     ellipse(piesX(),piesY()-90,65,140);

@@ -92,7 +92,10 @@ class Escenarios {
       jugador.colocarPies(entradaX,entradaY);
       cambioAplicado=true;
     }
-    if (tiempo>=FUNDIDO_MS) enTransicion=false;
+    if (tiempo>=FUNDIDO_MS) {
+      enTransicion=false;
+      guardado.guardar();
+    }
   }
 
   void mostrarFundido(int ahora) {

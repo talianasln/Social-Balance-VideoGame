@@ -14,13 +14,13 @@ class AvisosPlazo {
   void actualizar(int ahora) {
     if (!gestorMinijuegos.derrota.isEmpty()) return;
     for (Tarea tarea : escritorio.tareas) {
-      if (!tarea.completada && tarea.minutosParaEmpezar()<0) {
+      if (!tarea.estaCompletada() && tarea.minutosParaEmpezar()<0) {
         gestorMinijuegos.mostrarPlazoVencido(tarea);
         return;
       }
     }
     for (Tarea tarea : escritorio.tareas) {
-      if (!tarea.completada && !tarea.avisoPlazoEnviado && tarea.minutosParaEmpezar()<=30) {
+      if (!tarea.estaCompletada() && !tarea.avisoPlazoEnviado && tarea.minutosParaEmpezar()<=30) {
         tarea.avisoPlazoEnviado=true;
         pendientes.addLast(tarea);
       }
@@ -29,11 +29,11 @@ class AvisosPlazo {
     if (visible!=null && mostrar && fueVisible) tiempoVisible+=ahora-ultimaActualizacion;
     ultimaActualizacion=ahora;
     fueVisible=mostrar;
-    if (visible!=null && (visible.completada || tiempoVisible>=8000)) visible=null;
+    if (visible!=null && (visible.estaCompletada() || tiempoVisible>=8000)) visible=null;
     if (visible!=null || escenarios.cambiando()) return;
     while (!pendientes.isEmpty()) {
       Tarea tarea=pendientes.removeFirst();
-      if (tarea.completada) continue;
+      if (tarea.estaCompletada()) continue;
       visible=tarea;
       tiempoVisible=0;
       vibrarCelular();

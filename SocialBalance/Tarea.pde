@@ -7,7 +7,13 @@ class Tarea {
   int estres;
   int concentracion;
   int limite;
-  boolean completada = false;
+  private boolean completada;
+  boolean estaCompletada() { return completada; }
+  boolean marcarCompletada() {
+    if (completada) return false;
+    completada=true;
+    return true;
+  }
   boolean avisoPlazoEnviado;
 
   Tarea(int id, String nombre, String descripcion, int minutosNecesarios, int energia, int estres, int concentracion, int limite) {

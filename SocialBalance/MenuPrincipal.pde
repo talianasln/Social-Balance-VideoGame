@@ -16,6 +16,14 @@ void mostrarMenu() {
   boton("CONTINUAR", MENU_X, MENU_Y + MENU_PASO);
   boton("CONFIGURACIÓN", MENU_X, MENU_Y + 2 * MENU_PASO);
   boton("SALIR", MENU_X, MENU_Y + 3 * MENU_PASO);
+  if (!guardado.avisoMenu.isEmpty()) {
+    pushStyle();
+    rectMode(CORNER); noStroke(); fill(45,31,41,235);
+    rect(395,305,490,34,8);
+    fill(255,240,225); textAlign(CENTER,CENTER); textSize(16);
+    text(guardado.avisoMenu,640,322);
+    popStyle();
+  }
 }
 
 
@@ -60,12 +68,16 @@ void mousePressed() {
     // NUEVO JUEGO
     if (sobreOpcionMenu(0)) {
 
+      guardado.avisoMenu="";
       reiniciarDia();
       pantalla = 1;
 
       // Reiniciar selección
       personajeSeleccionado = 0;
 
+    }
+    else if (sobreOpcionMenu(1)) {
+      guardado.continuar();
     }
     else if (sobreOpcionMenu(3)) {
       exit();
@@ -117,7 +129,7 @@ void mouseReleased() {
   } else if (gestorMinijuegos.activo==5) {
     gestorMinijuegos.vistaOrdenarPasos.soltar(mouseJuegoX(),mouseJuegoY());
   } else if (gestorMinijuegos.activo==3) {
-    gestorMinijuegos.vistaVerdaderoFalso.soltar(mouseJuegoX(),mouseJuegoY(),(long)millis());
+    gestorMinijuegos.vistaVerdaderoFalso.soltar(mouseJuegoX(),mouseJuegoY());
     gestorMinijuegos.sincronizar();
   }
 }

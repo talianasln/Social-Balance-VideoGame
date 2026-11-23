@@ -29,7 +29,7 @@ class CalendarioJuego {
   }
 
   int colorEstado(Tarea tarea) {
-    if (tarea.completada) return color(66,100,52);
+    if (tarea.estaCompletada()) return color(66,100,52);
     int margen=minutosParaEmpezar(tarea);
     if (margen<=15) return color(153,29,48);
     if (margen<30) return color(139,80,15);
@@ -86,15 +86,16 @@ class CalendarioJuego {
     text("Hora de entrega",860,302);
     text("Estado y última hora de inicio",1370,302);
 
-    for (int i=0; i<escritorio.tareas.length; i++) {
-      Tarea tarea=escritorio.tareas[i];
-      float y=391+i*88;
+    int fila=0;
+    for (Tarea tarea : escritorio.tareas) {
+      float y=391+fila*88;
+      fila++;
       int margen=minutosParaEmpezar(tarea);
-      if (!tarea.completada && margen<30) {
+      if (!tarea.estaCompletada() && margen<30) {
         fill(margen<=15 ? color(247,208,200) : color(251,226,163));
         rect(1128,y-29,480,60,18);
       }
-      if (tarea.completada) {
+      if (tarea.estaCompletada()) {
         stroke(colorEstado(tarea));
         strokeWeight(8);
         strokeCap(ROUND);
@@ -107,8 +108,8 @@ class CalendarioJuego {
       text(tarea.nombre,380,y);
       text(tarea.horaLimite(),860,y);
       fill(colorEstado(tarea));
-      String estado=tarea.completada ? "Hecha" : "Pendiente";
-      if (tarea.completada) text(estado,1370,y);
+      String estado=tarea.estaCompletada() ? "Hecha" : "Pendiente";
+      if (tarea.estaCompletada()) text(estado,1370,y);
       else {
         textSize(26);
         text(estado,1370,y-14);

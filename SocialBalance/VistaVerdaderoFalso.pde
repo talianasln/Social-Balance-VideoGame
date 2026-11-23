@@ -1,16 +1,14 @@
-// Vista compartida por la prueba independiente y el videojuego completo.
+// Vista del reto Verdadero o Falso.
 // Arrastrar izquierda = FALSO; arrastrar derecha = VERDADERO.
 class VistaVerdaderoFalso {
   VerdaderoFalso juego;
-  boolean integrado;
   boolean quiereSalir = false;
   boolean arrastrando = false;
   float pulsacionX, pulsacionY;
   float desplazamientoX, desplazamientoY;
 
-  VistaVerdaderoFalso(VerdaderoFalso juego, boolean integrado) {
+  VistaVerdaderoFalso(VerdaderoFalso juego) {
     this.juego = juego;
-    this.integrado = integrado;
   }
 
   boolean dentro(float px, float py, float x, float y, float w, float h) {
@@ -30,7 +28,6 @@ class VistaVerdaderoFalso {
 
   void mostrar() {
     long ahora = (long)millis();
-    juego.actualizar(ahora);
     pushStyle();
     rectMode(CORNER);
     dibujarFondoMinijuego();
@@ -38,33 +35,7 @@ class VistaVerdaderoFalso {
     textAlign(LEFT,CENTER);
     textSize(26);
     text("SOCIAL BALANCE  /  VERDADERO O FALSO",98,76);
-    if (integrado) {
-      dibujarCierreVentana();
-    }
-
-    // Introduccion corta que da sentido educativo al reto.
-    if (juego.estado == VerdaderoFalso.INTRO) {
-      fill(65,39,45);
-      textAlign(CENTER,CENTER);
-      textSize(35);
-      text("Desafío de ciudadanía digital",ANCHO_JUEGO/2,183);
-      fill(75,57,60);
-      textSize(21);
-      text("Tu universidad te invitó a una evaluacion breve sobre redes sociales.",ANCHO_JUEGO/2,243);
-      text("Decide si cada una de las siete afirmaciones es verdadera o falsa.",ANCHO_JUEGO/2,279);
-      fill(45,40,54);
-      stroke(137,109,125);
-      rect(185,322,910,155,14);
-      fill(245,219,205);
-      textSize(19);
-      text("ARRASTRA LA TARJETA:  IZQUIERDA = FALSO  |  DERECHA = VERDADERO",ANCHO_JUEGO/2,366);
-      fill(204,185,195);
-      textSize(18);
-      text("Sin límite de tiempo real. Ganas con 5 aciertos; 3 errores terminan el intento.",ANCHO_JUEGO/2,416);
-      boton(470,523,340,67,"COMENZAR RETO");
-      popStyle();
-      return;
-    }
+    dibujarCierreVentana();
 
     int seg = juego.inicioReloj < 0 ? 0 : (int)((ahora-juego.inicioReloj)/1000);
     String tiempo = nf(seg / 60,2) + ":" + nf(seg % 60,2);
@@ -90,15 +61,14 @@ class VistaVerdaderoFalso {
       textSize(22);
       if (juego.estado == VerdaderoFalso.VICTORIA) {
         text("Conseguiste cinco respuestas correctas.",ANCHO_JUEGO/2,334);
-      } else if (juego.estado == VerdaderoFalso.DERROTA_ERRORES) {
-        text("Acumulaste tres errores: ya no puedes alcanzar los cinco aciertos.",ANCHO_JUEGO/2,334);
       } else {
-        text("Se agotaron los 90 segundos antes de conseguir cinco aciertos.",ANCHO_JUEGO/2,334);
+        text("Acumulaste tres errores: ya no puedes alcanzar los cinco aciertos.",ANCHO_JUEGO/2,334);
+
       }
       textSize(18);
       text("Resultado: " + juego.aciertos + " aciertos y " + juego.errores + " errores.",ANCHO_JUEGO/2,388);
       if (juego.completado()) {
-        boton(447,492,386,65,integrado ? "VOLVER AL COMPUTADOR" : "OTRA RONDA (SOLO PRUEBA)");
+        boton(447,492,386,65,"VOLVER AL COMPUTADOR");
       } else {
         boton(460,492,360,65,"REINTENTAR");
       }
@@ -167,22 +137,16 @@ class VistaVerdaderoFalso {
     popStyle();
   }
 
-  void presionar(float x,float y,long ahora) {
-    juego.actualizar(ahora);
-    if (integrado && sobreCierreVentana(x,y)) {
+  void presionar(float x,float y) {
+    if (sobreCierreVentana(x,y)) {
       arrastrando = false;
       quiereSalir = true;
-      return;
-    }
-    if (juego.estado == VerdaderoFalso.INTRO) {
-      if (dentro(x,y,470,523,340,67)) juego.comenzar(ahora);
       return;
     }
     if (juego.terminado()) {
       if (juego.completado()) {
         if (dentro(x,y,447,492,386,65)) {
-          if (integrado) quiereSalir = true;
-          else juego.reiniciar(ahora); // exclusivo de la prueba
+          quiereSalir = true;
         }
       } else if (dentro(x,y,460,492,360,65)) {
         gestorMinijuegos.reintentar();
@@ -205,8 +169,7 @@ class VistaVerdaderoFalso {
     desplazamientoY = constrain(y-pulsacionY,-105,105);
   }
 
-  void soltar(float x,float y,long ahora) {
-    juego.actualizar(ahora);
+  void soltar(float x,float y) {
     if (!arrastrando) return;
     arrastrando = false;
     if (juego.estado != VerdaderoFalso.JUGANDO) return;
@@ -214,7 +177,7 @@ class VistaVerdaderoFalso {
     // el centro de la tarjeta: funciona aunque la sujetes por un borde.
     // Un clic simple sin desplazamiento nunca puede contar como respuesta.
     if (Math.abs(x-pulsacionX) < 75) return;
-    if (dentro(x,y,95,250,297,265)) juego.responder(false,ahora);
-    else if (dentro(x,y,888,250,297,265)) juego.responder(true,ahora);
+    if (dentro(x,y,95,250,297,265)) juego.responder(false);
+    else if (dentro(x,y,888,250,297,265)) juego.responder(true);
   }
 }

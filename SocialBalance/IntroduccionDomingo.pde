@@ -8,7 +8,10 @@ class IntroduccionDomingo {
   }
 
   void procesarClick() {
-    if (sobreSeleccion(BOTON_X,BOTON_Y,BOTON_ANCHO,BOTON_ALTO)) abierta=false;
+    if (sobreSeleccion(BOTON_X,BOTON_Y,BOTON_ANCHO,BOTON_ALTO)) {
+      abierta=false;
+      guardado.guardar();
+    }
   }
 
   void mostrar() {

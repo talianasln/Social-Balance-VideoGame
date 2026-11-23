@@ -1,19 +1,25 @@
 // Nombres de los PNG en data. Cambiar aquí si se renombran los recursos.
 class PersonajeConfig {
-  String nombre, seleccion, descanso, movimientos, movimientosHabitacion;
+  String nombre, seleccion, descansoHabitacion, descansoExterior, movimientosHabitacion, movimientosExterior;
   PImage preview;
-  PersonajeConfig(String nombre,String seleccion,String descanso,String movimientos,String movimientosHabitacion) {
-    this.nombre=nombre; this.seleccion=seleccion; this.descanso=descanso; this.movimientos=movimientos;
+  PersonajeConfig(String nombre,String seleccion,String descansoHabitacion,String descansoExterior,
+                  String movimientosHabitacion,String movimientosExterior) {
+    this.nombre=nombre; this.seleccion=seleccion;
+    this.descansoHabitacion=descansoHabitacion; this.descansoExterior=descansoExterior;
     this.movimientosHabitacion=movimientosHabitacion;
+    this.movimientosExterior=movimientosExterior;
   }
 }
 PersonajeConfig[] personajes;
 
 void prepararPersonajes() {
   personajes = new PersonajeConfig[] {
-    new PersonajeConfig("Chico","ChicoEstatico.png","ChicoNivel1Descanso.png","ChicoNivel1Movimientos.png",null),
-    new PersonajeConfig("Chica","ChicaEstatica.png",null,"ChicaNivel2Movimientos.png","ChicaNivel1Movimientos.png"),
-    new PersonajeConfig("NoBin","NoBinEstatica.png","NoBinNivel1Descanso.png",null,"NoBinNivel1Movimientos.png")
+    new PersonajeConfig("Chico","ChicoEstatico.png","ChicoNivel1Descanso.png","ChicoNivel2Descanso.png",
+                        "ChicoNivel1Movimientos.png","ChicoNivel2Movimientos.png"),
+    new PersonajeConfig("Chica","ChicaEstatica.png","ChicaNivel1Descanso.png","ChicaNivel2Descanso.png",
+                        "ChicaNivel1Movimientos.png","ChicaNivel2Movimientos.png"),
+    new PersonajeConfig("NoBin","NoBinEstatica.png","NoBinNivel1Descanso.png","NoBinNivel2Descanso.png",
+                        "NoBinNivel1Movimientos.png","NoBinNivel2Movimientos.png")
   };
   for (PersonajeConfig p : personajes) p.preview=cargarImagenPersonaje(p.seleccion,resolucionSprite(330),false);
 }

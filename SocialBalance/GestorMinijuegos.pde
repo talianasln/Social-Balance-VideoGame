@@ -8,7 +8,6 @@ class GestorMinijuegos {
   boolean mostrandoContexto;
   long inicioModal;
   String derrota = "";
-  String avisoEscritorio = "";
   CrearContrasenaSegura contrasena;
   VistaContrasena vistaContrasena;
   VistaMemoria vistaMemoria;
@@ -22,17 +21,14 @@ class GestorMinijuegos {
   int varianteContrasena = int(random(3));
 
   Tarea tareaActual() {
-    for (Tarea tarea : escritorio.tareas) if (tarea.id==activo) return tarea;
-    return null;
+    return escritorio.tareas.consultar(activo);
   }
 
   boolean abrir(int id) {
     if (activo!=0 || derrota.length()>0) return false;
-    Tarea elegida=null;
-    for (Tarea tarea : escritorio.tareas) if (tarea.id==id) elegida=tarea;
+    Tarea elegida=escritorio.tareas.consultar(id);
     if (elegida==null) return false;
-    avisoEscritorio=elegida.bloqueo();
-    if (avisoEscritorio.length()>0) return false;
+    if (!elegida.bloqueo().isEmpty()) return false;
     activo=id;
     resultado=0;
     confirmarSalida=false;
@@ -58,7 +54,7 @@ class GestorMinijuegos {
     } else if (activo==3) {
       verdaderoFalso=new VerdaderoFalso();
       verdaderoFalso.comenzar(millis());
-      vistaVerdaderoFalso=new VistaVerdaderoFalso(verdaderoFalso, true);
+      vistaVerdaderoFalso=new VistaVerdaderoFalso(verdaderoFalso);
     } else if (activo==4) {
       conceptos=new ConectarConceptos();
       conceptos.iniciar(millis());
@@ -88,12 +84,13 @@ class GestorMinijuegos {
       (activo==5 && ordenarPasos.hayVictoria());
     if (exito) {
       Tarea tarea=tareaActual();
-      if (!tarea.completada && tarea.bloqueo().length()==0 && hud.avanzarTiempo(tarea.minutosNecesarios)) {
+      if (!tarea.estaCompletada() && tarea.bloqueo().length()==0 && hud.avanzarTiempo(tarea.minutosNecesarios)) {
         hud.modificarEnergia(-tarea.energia);
         hud.modificarEstres(tarea.estres);
         hud.modificarConcentracion(-tarea.concentracion);
-        tarea.completada=true;
+        escritorio.tareas.completar(tarea.id);
         resultado=1;
+        guardado.guardar();
       }
       return;
     }
@@ -114,6 +111,7 @@ class GestorMinijuegos {
     }
     resultado=2;
     confirmarSalida=false;
+    guardado.guardar();
     return true;
   }
 
@@ -253,7 +251,7 @@ class GestorMinijuegos {
     }
     if (activo==1) vistaContrasena.presionar(x, y);
     else if (activo==2) vistaMemoria.presionar(x, y, (long)millis());
-    else if (activo==3) vistaVerdaderoFalso.presionar(x, y, (long)millis());
+    else if (activo==3) vistaVerdaderoFalso.presionar(x, y);
     else if (activo==4) vistaConceptos.presionar(x,y);
     else if (activo==5) vistaOrdenarPasos.presionar(x,y);
     sincronizar();
@@ -323,7 +321,10 @@ class GestorMinijuegos {
     botonPanel("REINICIAR EL DÍA", 440, 480, 400);
   }
   void clickDerrota() {
-    if (dentroPanel(440, 480, 400)) reiniciarDia();
+    if (dentroPanel(440, 480, 400)) {
+      reiniciarDia();
+      guardado.guardar();
+    }
   }
 }
 

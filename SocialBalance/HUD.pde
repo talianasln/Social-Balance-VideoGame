@@ -8,6 +8,9 @@ class HUD {
   int descansoAcumulado = 0;
   private int tareasAlUsarCelular = -1;
 
+  int ultimoUsoCelular() { return tareasAlUsarCelular; }
+  void restaurarUltimoUsoCelular(int tareas) { tareasAlUsarCelular=tareas; }
+
   // Hora inicial: 8:00 AM
   int hora = 8;
   int minutos = 0;
