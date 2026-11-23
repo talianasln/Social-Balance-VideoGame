@@ -114,7 +114,7 @@ else if (pantalla == 2) {
     if (cama.interfazAbierta) { cama.procesarClick(); return; }
     if (celular.interfazAbierta) { celular.procesarClick(); return; }
     if (instrucciones.abierta) {
-      if (instrucciones.clicCerrar()) { instrucciones.cerrar(); jugador.detenerMovimiento(); }
+      instrucciones.procesarClick();
       return;
     }
     if (escritorio.interfazAbierta) { escritorio.procesarClick(); return; }
